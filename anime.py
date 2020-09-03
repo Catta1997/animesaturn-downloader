@@ -4,15 +4,20 @@ import sys
 import signal
 from bs4 import BeautifulSoup
 import re
+from datetime import datetime
+import locale
 
 all = True #anime correlati
 list_link = list()
+correlati_list = list()
+anime = {}
 titolo = ""
 season = 0
+season_num = 0
 def create_crawl():
     global list_link
     global titolo
-    global season
+    global season_num
     crwd = ""
     for link in list_link:
         crwd = crwd + '''
@@ -23,10 +28,29 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(link,titolo,season)
+        '''%(link,titolo,season_num)
     with open("%s.crawljob"%titolo, 'a') as f:
         f.write(crwd)
         f.close()
+def reorder_correlati():
+    for URL in correlati_list:
+        new_r = requests.get(url = URL, params = {})
+        pastebin_url = new_r.text 
+        parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+        anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
+        release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
+        anime[release[0]] = URL
+        #release = anno.find('b','Data di uscita:')
+        #print(release)
+    locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
+    ordered_data = sorted(anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
+    for x in ordered_data:
+        #print(x[1])
+        #print(".-.-")
+        selected_anime(x[1])
+
+
+
 def sig_handler(_signo, _stack_frame):
     print("\n")
     sys.exit(0)
@@ -39,17 +63,24 @@ def get_correlati(URL):
     for dim in correlati:
         anime = dim.find('a')['href']
         #print("Season %d -> Titolo %s"%(season,anime))
-        selected_anime(anime)
+        #selected_anime(anime)
+        correlati_list.append(anime)
+    reorder_correlati()
 def selected_anime(URL):
     global season
+    global season_num
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    if 'OVA' in anime_type.text: season = 0
-    else: season += 1
+    if 'OVA' in anime_type.text: season_num = 0
+    else: 
+        season +=1
+        season_num = season
+    print(season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
+    list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
         title = dim.find('a',attrs={})
