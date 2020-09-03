@@ -5,24 +5,26 @@ import signal
 from bs4 import BeautifulSoup
 import re
 
-all = False #anime correlati
+all = True #anime correlati
 list_link = list()
 titolo = ""
+season = 0
 def create_crawl():
     global list_link
     global titolo
+    global season
     crwd = ""
     for link in list_link:
         crwd = crwd + '''
         {
         text= %s
-        downloadFolder= /share/Plex/ANIME/School_Days/Season_1
+        downloadFolder= /share/Plex/ANIME/%s/Season_%d
         enabled= true
         autoStart= true
         autoConfirm= true
         }
-        '''%link
-    with open("%s.crawljob"%titolo, 'w') as f:
+        '''%(link,titolo,season)
+    with open("%s.crawljob"%titolo, 'a') as f:
         f.write(crwd)
         f.close()
 def sig_handler(_signo, _stack_frame):
@@ -36,14 +38,17 @@ def get_correlati(URL):
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
     for dim in correlati:
         anime = dim.find('a')['href']
-        print("-------")
+        #print("Season %d -> Titolo %s"%(season,anime))
         selected_anime(anime)
-    print()
 def selected_anime(URL):
+    global season
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+    anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
+    if 'OVA' in anime_type.text: season = 0
+    else: season += 1
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     for dim in anime_ep:
         episode = dim.find('a')['href']
@@ -62,6 +67,7 @@ def selected_anime(URL):
     create_crawl()
 def main():
     global titolo
+    global season
     titoli_anime = list()
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
@@ -76,14 +82,14 @@ def main():
     x = 1
     for dim in animes:
         print(x)
-        print()
+        print("TITOLO:")
         title = dim.find('a',attrs={'class':'badge badge-archivio badge-light'})
         trama = dim.find('p',attrs={'class':'trama-anime-archivio text-white rounded'})
         link = dim.find('a')['href']
-        print(title.text)
+        print("\x1b[32m" + title.text + "\x1b[0m")
         titoli_anime.append((title.text).replace(" ","_"))
-        print()
-        print(trama.text)
+        print("TRAMA:")
+        print("\x1b[37m" + trama.text +"\x1b[0m")
         anime_list.append(link)
         print("--------")
         x+=1
@@ -92,9 +98,10 @@ def main():
     URL = anime_list[selected]
     titolo = titoli_anime[selected]
     if(all):
-        print("Correlati:")
+        #print("Correlati:")
         get_correlati(URL)
     else:
+        season = 1
         selected_anime(URL)
 
 if __name__ == "__main__":
