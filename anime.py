@@ -78,7 +78,7 @@ def selected_anime(URL):
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    if ('OVA' in anime_type.text or "Special" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0] or "Movie" in info[0]): 
         season_num = 0
     else: 
         season +=1
