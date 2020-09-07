@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime
 import locale
-
+leng = True
 all = True #anime correlati
 list_link = list()
 correlati_list = list()
@@ -49,8 +49,6 @@ def reorder_correlati():
         #print(".-.-")
         selected_anime(x[1])
 
-
-
 def sig_handler(_signo, _stack_frame):
     print("\n")
     sys.exit(0)
@@ -60,11 +58,15 @@ def get_correlati(URL):
     pastebin_url = new_r.text 
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
+    correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
         #print("Season %d -> Titolo %s"%(season,anime))
         #selected_anime(anime)
-        correlati_list.append(anime)
+        if(leng):
+            if("-ITA" in anime):
+                correlati_list.append(anime)
+        else: correlati_list.append(anime)
     reorder_correlati()
 def selected_anime(URL):
     global season
@@ -73,12 +75,16 @@ def selected_anime(URL):
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+    all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
+    info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    if 'OVA' in anime_type.text: season_num = 0
+    if ('OVA' in anime_type.text or "Special" in info[0]): 
+        season_num = 0
     else: 
         season +=1
         season_num = season
-    print(season_num)
+    if season_num == 0: print("OVA")
+    else : print("Stagione %d"%season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     list_link.clear()
     for dim in anime_ep:
@@ -99,7 +105,7 @@ def selected_anime(URL):
 def main():
     global titolo
     global season
-    titoli_anime = list()
+    #titoli_anime = list()
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     anime_list  = list()
@@ -118,7 +124,7 @@ def main():
         trama = dim.find('p',attrs={'class':'trama-anime-archivio text-white rounded'})
         link = dim.find('a')['href']
         print("\x1b[32m" + title.text + "\x1b[0m")
-        titoli_anime.append((title.text).replace(" ","_"))
+        #titoli_anime.append((title.text).replace(" ","_"))
         print("TRAMA:")
         print("\x1b[37m" + trama.text +"\x1b[0m")
         anime_list.append(link)
@@ -127,7 +133,8 @@ def main():
     selected = int(input("ID:"))
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
-    titolo = titoli_anime[selected]
+    titolo = re.findall("(?<=anime/)(.*)", URL)[0]
+    #titolo = titoli_anime[selected]
     if(all):
         #print("Correlati:")
         get_correlati(URL)
