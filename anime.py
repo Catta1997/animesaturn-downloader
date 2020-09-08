@@ -53,6 +53,7 @@ def sig_handler(_signo, _stack_frame):
     print("\n")
     sys.exit(0)
 def get_correlati(URL):
+    is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
     #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
@@ -63,7 +64,7 @@ def get_correlati(URL):
         anime = dim.find('a')['href']
         #print("Season %d -> Titolo %s"%(season,anime))
         #selected_anime(anime)
-        if(leng):
+        if(leng and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
