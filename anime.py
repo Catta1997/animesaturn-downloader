@@ -21,9 +21,6 @@ titolo = ""
 season = 0
 season_num = 0
 def create_crawl():
-    global list_link
-    global titolo
-    global season_num
     crwd = ""
     for link in list_link:
         crwd = crwd + '''
