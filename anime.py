@@ -6,8 +6,14 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime
 import locale
+
+#config
+download_path = "/share/Plex/ANIME/"
+crawl_path = "/Users/edoardo/Documents/GitHub/animesaturn-downloader/"
 leng = True
 all = True #anime correlati
+#
+
 list_link = list()
 correlati_list = list()
 anime = {}
@@ -23,16 +29,17 @@ def create_crawl():
         crwd = crwd + '''
         {
         text= %s
-        downloadFolder= /share/Plex/ANIME/%s/Season_%d
+        downloadFolder= %s%s/Season_%d
         enabled= true
         autoStart= true
         autoConfirm= true
         }
-        '''%(link,titolo,season_num)
-    with open("%s.crawljob"%titolo, 'a') as f:
+        '''%(link,download_path,titolo,season_num)
+    with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
         f.write(crwd)
         f.close()
 def reorder_correlati():
+    global titolo
     for URL in correlati_list:
         new_r = requests.get(url = URL, params = {})
         pastebin_url = new_r.text 
@@ -44,6 +51,7 @@ def reorder_correlati():
         #print(release)
     locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
     ordered_data = sorted(anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
+    titolo = re.findall("(?<=anime/)(.*)", ordered_data[0][1])[0]
     for x in ordered_data:
         #print(x[1])
         #print(".-.-")
@@ -104,7 +112,6 @@ def selected_anime(URL):
         list_link.append(episode)
     create_crawl()
 def main():
-    global titolo
     global season
     #titoli_anime = list()
     signal.signal(signal.SIGTERM, sig_handler)
@@ -134,7 +141,6 @@ def main():
     selected = int(input("ID:"))
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
-    titolo = re.findall("(?<=anime/)(.*)", URL)[0]
     #titolo = titoli_anime[selected]
     if(all):
         #print("Correlati:")

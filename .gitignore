@@ -1,2 +1,7 @@
 
 *.crawljob
+
+.DS_Store
+
+*/.DS_Store
+
