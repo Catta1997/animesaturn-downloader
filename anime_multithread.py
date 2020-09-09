@@ -16,13 +16,35 @@ leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
 all = True #anime correlati
 #
 
+only_link = list()
 list_link = list()
 correlati_list = list()
 anime = {}
+all_ep = {}
 titolo = ""
 season = 0
 season_num = 0
+
+
+def create_crawl_fixed():
+    crwd = ""
+    for link in list_link:
+        crwd = crwd + '''
+        {
+        text= %s
+        downloadFolder= %s%s/Season_%s
+        enabled= true
+        autoStart= true
+        autoConfirm= true
+        }
+        '''%(link,download_path,titolo,all_ep[link])
+    with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
+        f.write(crwd)
+        f.close()
+    list_link.clear()
+
 def create_crawl():
+    print("ep number: %d"%len(list_link))
     crwd = ""
     for link in list_link:
         crwd = crwd + '''
@@ -37,9 +59,9 @@ def create_crawl():
     with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
         f.write(crwd)
         f.close()
+    list_link.clear()
 def reorder_correlati():
     global titolo
-    only_link = list()
     for URL in correlati_list:
         new_r = requests.get(url = URL, params = {})
         pastebin_url = new_r.text 
@@ -73,33 +95,17 @@ def get_correlati(URL):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
     reorder_correlati()
-def get_link(ep):
-    for dim in ep:
-        #episode = dim.find('a')['href']
-        #title = dim.find('a',attrs={})
-        new_r = requests.get(url = ep, params = {})
-        pastebin_url = new_r.text
-        parsed_html = BeautifulSoup(pastebin_url,"html.parser")
-        anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
-        is_link = anime_page.find('a')['href']
-        if 'watch' in is_link: episode = is_link+'&s=alt'
-        new_r = requests.get(url = episode, params = {})
-        pastebin_url = new_r.text
-        parsed_html = BeautifulSoup(pastebin_url,"html.parser")
-       # splotted_title = re.findall('(\w+ \d+)',title.text)
-        print(episode)
-        list_link.append(episode)
 
 def one_link(ep):
-    new_r = requests.get(url = ep, params = {})
+    x = ep.split("§")
+    new_r = requests.get(url = x[0], params = {})
     pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
     is_link = anime_page.find('a')['href']
-    if 'watch' in is_link: episode = is_link+'&s=alt'
-    new_r = requests.get(url = episode, params = {})
-    pastebin_url = new_r.text
-    parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+    if 'watch' in is_link: 
+        episode = is_link+'&s=alt'
+    all_ep[episode] = x[1]
     list_link.append(episode)
 
 def selected_anime(URL):
@@ -118,16 +124,18 @@ def selected_anime(URL):
     else: 
         season +=1
         season_num = season
+    print(season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
+        episode = episode +"§%d"%season_num
+        #print(episode)
         ep_list.append(episode)
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
         results = pool.map(one_link, ep_list)
     ep_list.clear()
     #get_link(anime_ep)
-    create_crawl()
 def main():
     global season
     signal.signal(signal.SIGTERM, sig_handler)
@@ -163,6 +171,7 @@ def main():
     else:
         season = 1
         selected_anime(URL)
+    create_crawl_fixed()
 
 if __name__ == "__main__":
     start_time = time.time()
