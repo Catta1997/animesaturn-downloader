@@ -47,16 +47,12 @@ def reorder_correlati():
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
         anime[release[0]] = URL
-        #release = anno.find('b','Data di uscita:')
-        #print(release)
     locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
     ordered_data = sorted(anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
     titolo = re.findall("(?<=anime/)(.*)", ordered_data[0][1])[0]
-    #with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-    #    results = pool.map(selected_anime, ordered_data[1])
     for x in ordered_data:
         only_link.append(x[1])
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
         results = pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
@@ -72,8 +68,6 @@ def get_correlati(URL):
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        #print("Season %d -> Titolo %s"%(season,anime))
-        #selected_anime(anime)
         if(leng and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
@@ -106,7 +100,6 @@ def one_link(ep):
     new_r = requests.get(url = episode, params = {})
     pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
-    # splotted_title = re.findall('(\w+ \d+)',title.text)
     list_link.append(episode)
 
 def selected_anime(URL):
@@ -125,21 +118,18 @@ def selected_anime(URL):
     else: 
         season +=1
         season_num = season
-    #if season_num == 0: print("OVA")
-    #else : print("Stagione %d"%season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
         ep_list.append(episode)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
         results = pool.map(one_link, ep_list)
     ep_list.clear()
     #get_link(anime_ep)
     create_crawl()
 def main():
     global season
-    #titoli_anime = list()
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     anime_list  = list()
@@ -159,7 +149,6 @@ def main():
         trama = dim.find('p',attrs={'class':'trama-anime-archivio text-white rounded'})
         link = dim.find('a')['href']
         print("\x1b[32m" + title.text + "\x1b[0m")
-        #titoli_anime.append((title.text).replace(" ","_"))
         print("TRAMA:")
         print("\x1b[37m" + trama.text +"\x1b[0m")
         anime_list.append(link)
@@ -169,9 +158,7 @@ def main():
     #selected = 2
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
-    #titolo = titoli_anime[selected]
     if(all):
-        #print("Correlati:")
         get_correlati(URL)
     else:
         season = 1
