@@ -10,6 +10,7 @@ import time
 import concurrent.futures
 
 #config
+movie_folder = "/share/Plex/ANIME_FILM/"
 download_path = "/share/Plex/ANIME/"
 crawl_path = "/Users/edoardo/Documents/GitHub/animesaturn-downloader/"
 leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
@@ -112,6 +113,7 @@ def selected_anime(URL):
     global season
     global season_num
     ep_list = list()
+    modif = False
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
@@ -119,6 +121,9 @@ def selected_anime(URL):
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
+    while (modif):
+        sd = 1
+    modif = True
     if ('OVA' in anime_type.text or "Special" in info[0] or "Movie" in info[0]): 
         season_num = 0
     else: 
@@ -129,15 +134,21 @@ def selected_anime(URL):
     list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
-        episode = episode +"§%d"%season_num
+        #episode = episode +"§%d"%season_num
+        episode = URL +"§%d"%season_num
+        print(episode)
         #print(episode)
         ep_list.append(episode)
+    modif = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
         results = pool.map(one_link, ep_list)
     ep_list.clear()
     #get_link(anime_ep)
+
+start = time.time()
 def main():
     global season
+    global start
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     anime_list  = list()
@@ -165,6 +176,7 @@ def main():
     selected = int(input("ID:"))
     #selected = 2
     selected -=1 #la lista parte da 0
+    start = time.time()
     URL = anime_list[selected]
     if(all):
         get_correlati(URL)
@@ -174,6 +186,6 @@ def main():
     create_crawl_fixed()
 
 if __name__ == "__main__":
-    start_time = time.time()
     main()
+    start_time = start
     print("--- %s seconds ---" % (time.time() - start_time))
