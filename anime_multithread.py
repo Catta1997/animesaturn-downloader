@@ -27,7 +27,7 @@ season = 0
 season_num = 0
 
 
-def create_crawl_fixed():
+def create_crawl():
     crwd = ""
     for link in list_link:
         crwd = crwd + '''
@@ -44,23 +44,6 @@ def create_crawl_fixed():
         f.close()
     list_link.clear()
 
-def create_crawl():
-    print("ep number: %d"%len(list_link))
-    crwd = ""
-    for link in list_link:
-        crwd = crwd + '''
-        {
-        text= %s
-        downloadFolder= %s%s/Season_%d
-        enabled= true
-        autoStart= true
-        autoConfirm= true
-        }
-        '''%(link,download_path,titolo,season_num)
-    with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
-        f.write(crwd)
-        f.close()
-    list_link.clear()
 def reorder_correlati():
     global titolo
     for URL in correlati_list:
@@ -113,7 +96,7 @@ def selected_anime(URL):
     global season
     global season_num
     ep_list = list()
-    modif = False
+    mutex = False
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text 
@@ -121,29 +104,24 @@ def selected_anime(URL):
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    while (modif):
-        sd = 1
-    modif = True
+    while (mutex):
+        time.sleep(0.5)
+    mutex = True
     if ('OVA' in anime_type.text or "Special" in info[0] or "Movie" in info[0]): 
         season_num = 0
     else: 
         season +=1
         season_num = season
-    print(season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
-        #episode = episode +"§%d"%season_num
-        episode = URL +"§%d"%season_num
-        print(episode)
-        #print(episode)
+        episode = episode +"§%d"%season_num
         ep_list.append(episode)
-    modif = False
+    mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
         results = pool.map(one_link, ep_list)
     ep_list.clear()
-    #get_link(anime_ep)
 
 start = time.time()
 def main():
@@ -161,6 +139,9 @@ def main():
     parsed_html = BeautifulSoup(html,"html.parser")
     animes = parsed_html.find_all('ul', attrs={'class':'list-group'})
     x = 1
+    if (len(animes)) == 0:
+        print("\x1b[31mNessun Anime trovato per %s\x1b[0m"%name)
+        exit(0)
     for dim in animes:
         print(x)
         print("TITOLO:")
@@ -173,7 +154,14 @@ def main():
         anime_list.append(link)
         print("--------")
         x+=1
-    selected = int(input("ID:"))
+    try:
+        selected = int(input("ID:"))
+    except ValueError:
+        print("\x1b[31mNon è un ID valido\x1b[0m")
+        exit(0)
+    if (selected >  len(animes)):
+        print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
+        exit(0)
     #selected = 2
     selected -=1 #la lista parte da 0
     start = time.time()
@@ -183,7 +171,7 @@ def main():
     else:
         season = 1
         selected_anime(URL)
-    create_crawl_fixed()
+    create_crawl()
 
 if __name__ == "__main__":
     main()
