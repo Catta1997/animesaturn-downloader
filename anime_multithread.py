@@ -1,7 +1,7 @@
 # importing the requests library 
 import requests,os,subprocess
 import sys
-import signal
+import signal, psutil
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
@@ -10,7 +10,7 @@ import time
 import concurrent.futures
 
 #config
-movie_folder = "/share/Plex/ANIME_FILM/"
+movie_folder = "/share/Plex/FILM_ANIME/"
 download_path = "/share/Plex/ANIME/"
 crawl_path = "/Users/edoardo/Documents/GitHub/animesaturn-downloader/"
 leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
@@ -25,25 +25,41 @@ all_ep = {}
 titolo = ""
 season = 0
 season_num = 0
-
+def kill_child_processes(parent_pid, sig=signal.SIGTERM):
+    try:
+        parent = psutil.Process(parent_pid)
+    except psutil.NoSuchProcess:
+        return
+    children = parent.children(recursive=True)
+    for process in children:
+        process.send_signal(sig)
 
 def create_crawl():
     crwd = ""
+    #creo un file vuoto, se presente sovrascrivo
+    with open("%s%s.crawljob"%(crawl_path,titolo), 'w') as f:
+        f.write(crwd)
+        f.close()
+    print("Creo crawljob per %d episodi"%len(list_link))
     for link in list_link:
+        if all_ep[link]=="-1":
+            download = "%s%s/"%(movie_folder,titolo)
+        else:
+            download = "%s%s/Season_%s"%(download_path,titolo,all_ep[link])
         crwd = crwd + '''
         {
         text= %s
-        downloadFolder= %s%s/Season_%s
+        downloadFolder= %s
         enabled= true
         autoStart= true
         autoConfirm= true
         }
-        '''%(link,download_path,titolo,all_ep[link])
+        '''%(link,download)
     with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
         f.write(crwd)
         f.close()
     list_link.clear()
-
+#riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
     global titolo
     for URL in correlati_list:
@@ -59,10 +75,13 @@ def reorder_correlati():
     for x in ordered_data:
         only_link.append(x[1])
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
+        for t in pool._threads:
+            print(t)
         results = pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
+    kill_child_processes(os.getpid())
     sys.exit(0)
 def get_correlati(URL):
     is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
@@ -107,8 +126,10 @@ def selected_anime(URL):
     while (mutex):
         time.sleep(0.5)
     mutex = True
-    if ('OVA' in anime_type.text or "Special" in info[0] or "Movie" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]): 
         season_num = 0
+    elif "Movie" in info[0]:
+        season_num = -1
     else: 
         season +=1
         season_num = season
@@ -120,19 +141,24 @@ def selected_anime(URL):
         ep_list.append(episode)
     mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
+        print(os.getpid())
+        for t in pool._threads:
+            print(t)
         results = pool.map(one_link, ep_list)
     ep_list.clear()
 
 start = time.time()
 def main():
-    global season
-    global start
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    anime_list  = list()
     name = input("nome:")
     #name = "dxd"
-    URL = "https://www.animesaturn.com/animelist?search="+name
+    search(name)
+def search(name):
+    global start
+    global season
+    anime_list  = list()
+    URL = "https://www.animesaturn.it/animelist?search="+name
     r = requests.get(url = URL, params = {})
     pastebin_url = r.text 
     html = pastebin_url
@@ -143,15 +169,13 @@ def main():
         print("\x1b[31mNessun Anime trovato per %s\x1b[0m"%name)
         exit(0)
     for dim in animes:
+        print("--------")
         print(x)
         print("TITOLO:")
-        title = dim.find('a',attrs={'class':'badge badge-archivio badge-light'})
-        trama = dim.find('p',attrs={'class':'trama-anime-archivio text-white rounded'})
-        link = dim.find('a')['href']
-        print("\x1b[32m" + title.text + "\x1b[0m")
+        print("\x1b[32m" + dim.find('a',attrs={'class':'badge badge-archivio badge-light'}).text + "\x1b[0m")
         print("TRAMA:")
-        print("\x1b[37m" + trama.text +"\x1b[0m")
-        anime_list.append(link)
+        print("\x1b[37m" + dim.find('p',attrs={'class':'trama-anime-archivio text-white rounded'}).text +"\x1b[0m")
+        anime_list.append(dim.find('a')['href'])
         print("--------")
         x+=1
     try:
