@@ -9,7 +9,7 @@ import locale
 
 #config
 download_path = "/share/Plex/ANIME/"
-crawl_path = "/Users/edoardo/Documents/GitHub/animesaturn-downloader/"
+crawl_path = "CrawlDefaultDir/" 
 leng = True
 all = True #anime correlati
 #
@@ -20,8 +20,14 @@ anime = {}
 titolo = ""
 season = 0
 season_num = 0
+
+def checkCrawl_Path(crawl_path):
+    if(not os.path.isdir(crawl_path)):
+        os.makedirs(crawl_path)
+
 def create_crawl():
     crwd = ""
+    checkCrawl_Path(crawl_path) #verifico che path esista
     for link in list_link:
         crwd = crwd + '''
         {
@@ -115,12 +121,13 @@ def main():
     signal.signal(signal.SIGINT, sig_handler)
     anime_list  = list()
     name = input("nome:")
-    URL = "https://www.animesaturn.com/animelist?search="+name
-    r = requests.get(url = URL, params = {})
+    URL = "https://www.animesaturn.it/animelist"
+    r = requests.get(url = URL, params = {"search":name})
     pastebin_url = r.text 
     html = pastebin_url
     parsed_html = BeautifulSoup(html,"html.parser")
     animes = parsed_html.find_all('ul', attrs={'class':'list-group'})
+
     x = 1
     for dim in animes:
         print(x)
@@ -135,7 +142,17 @@ def main():
         anime_list.append(link)
         print("--------")
         x+=1
-    selected = int(input("ID:"))
+    while True: #richiedere id se + sbagliato
+        try:
+            selected = int(input("ID ('0' per uscire):"))
+            if(selected == 0) : exit(0)
+
+            if (selected >  len(animes) or selected < 0):
+                print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
+                continue
+            break
+        except ValueError:
+            print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
     #titolo = titoli_anime[selected]
