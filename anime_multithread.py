@@ -10,8 +10,8 @@ import time
 import concurrent.futures
 
 #config
-movie_folder = "/share/Plex/FILM_ANIME/"
-download_path = "/share/Plex/ANIME/"
+movie_folder = "DownloadMovieFolder/"
+download_path = "DownloadFolder/"
 crawl_path = "CrawlDefaultDir/" 
 leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
 all = True #anime correlati
