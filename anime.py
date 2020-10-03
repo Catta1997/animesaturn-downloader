@@ -29,6 +29,8 @@ def create_crawl():
     crwd = ""
     checkCrawl_Path(crawl_path) #verifico che path esista
     for link in list_link:
+        sourcehtml = requests.get(link).text
+        source = re.findall("file: \"(.*)\",",sourcehtml)
         crwd = crwd + '''
         {
         text= %s
@@ -37,7 +39,7 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(link,download_path,titolo,season_num)
+        '''%(source[0],download_path,titolo,season_num)
     with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
         f.write(crwd)
         f.close()
