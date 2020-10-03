@@ -8,7 +8,7 @@ from datetime import datetime
 import locale
 
 #config
-download_path = "/share/Plex/ANIME/"
+download_path = "DownloadDir/"
 crawl_path = "CrawlDefaultDir/" 
 leng = True
 all = True #anime correlati
