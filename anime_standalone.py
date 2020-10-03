@@ -73,7 +73,7 @@ def create_crawl():
             if(start > 0 and finish > 0 and finish <= len(list_link) and start <= len(list_link)):
                 break
             print("Invalido!")
-        except:
+        except ValueError:
             print("Invalido!")
 
     for episodedata in list_link:
