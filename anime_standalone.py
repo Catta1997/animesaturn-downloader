@@ -64,7 +64,12 @@ def create_crawl():
     while True:
         try:
             wantedEps = input("Dammi Range Episodi (1:%d) "%len(list_link)).split(":")
-            start, finish = int(wantedEps[0]), int(wantedEps[1])
+            if("all" in (wantedEps[0].lower())):
+                start, finish = 1, len(list_link)
+            elif(len(wantedEps) == 1):
+                start, finish = int(wantedEps[0]), int(wantedEps[0])
+            else:
+                start, finish = int(wantedEps[0]), int(wantedEps[1])
             if(start > 0 and finish > 0):
                 break
             print("Invalido!")
