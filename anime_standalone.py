@@ -80,7 +80,6 @@ def create_crawl():
         if(start <= int(episodedata[1]) <= finish):
             sourcehtml = requests.get(episodedata[0]).text
             source = find_between(sourcehtml, "file:",",").replace("\"","")
-            print(source)    
             download(source,source.split("/")[-1])
     list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
