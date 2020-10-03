@@ -58,7 +58,6 @@ def download(url, file_name):
         file.write(response.content)
 
 def create_crawl():
-    crwd = ""
     #creo un file vuoto, se presente sovrascrivo
     checkDownload_Path(download_path) #verifico che path esista
     print("Rilevati %d episodi"%len(list_link))
