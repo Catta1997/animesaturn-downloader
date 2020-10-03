@@ -9,6 +9,7 @@ import locale
 import time
 import concurrent.futures
 import wget
+from tqdm import tqdm
 
 #config
 movie_folder = "download/"
