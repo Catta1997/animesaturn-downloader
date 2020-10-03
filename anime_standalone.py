@@ -63,7 +63,7 @@ def create_crawl():
     print("Rilevati %d episodi"%len(list_link))
     while True:
         try:
-            wantedEps = input("Dammi Range Episodi (1:2) ").split(":")
+            wantedEps = input("Dammi Range Episodi (1:%d) "%len(list_link)).split(":")
             start, finish = int(wantedEps[0]), int(wantedEps[1])
             if(start > 0 and finish > 0):
                 break
