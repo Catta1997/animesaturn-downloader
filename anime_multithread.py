@@ -48,6 +48,8 @@ def create_crawl():
         f.close()
     print("Creo crawljob per %d episodi"%len(list_link))
     for link in list_link:
+        sourcehtml = requests.get(link).text
+        source = re.findall("file: \"(.*)\",",sourcehtml)
         if all_ep[link]=="-1":
             download = "%s%s/"%(movie_folder,titolo)
         else:
@@ -60,7 +62,7 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(link,download)
+        '''%(source[0],download)
     with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
         f.write(crwd)
         f.close()
