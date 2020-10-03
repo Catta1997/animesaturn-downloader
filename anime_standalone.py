@@ -51,7 +51,10 @@ def download(url, file_name):
     print(os.path.join(download_path,file_name.split("_")[0]))
     checkDownload_Path(os.path.join(download_path,file_name.split("_")[0]))
     with open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb") as file:
-        response = requests.get(url)
+        response = requests.get(url, stream=True)
+        with tqdm.wrapattr(open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
+            for chunk in response.iter_content(chunk_size=4096):
+                fout.write(chunk)
         file.write(response.content)
 
 def create_crawl():
