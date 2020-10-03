@@ -70,7 +70,7 @@ def create_crawl():
                 start, finish = int(wantedEps[0]), int(wantedEps[0])
             else:
                 start, finish = int(wantedEps[0]), int(wantedEps[1])
-            if(start > 0 and finish > 0):
+            if(start > 0 and finish > 0 and finish <= len(list_link) and start <= len(list_link)):
                 break
             print("Invalido!")
         except:
