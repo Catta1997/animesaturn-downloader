@@ -226,6 +226,7 @@ def main():
     if (debug):
         print(config)
     search(name)
+    return 1
 
 def search(name):
     global start
