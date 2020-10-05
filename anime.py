@@ -161,7 +161,7 @@ def selected_anime(URL):
         new_r = requests.get(url = episode, params = {})
         pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
-        splotted_title = re.findall('(\w+ \d+)',title.text)
+        #splotted_title = re.findall('(\w+ \d+)',title.text)
         list_link.append(episode)
     create_crawl()
 def main():

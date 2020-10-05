@@ -9,7 +9,6 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import wget
 from tqdm import tqdm
 
 #config
@@ -149,7 +148,7 @@ def selected_anime(URL):
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
-    anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
+    anime_type = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
     while (mutex):
         time.sleep(0.5)
     mutex = True
