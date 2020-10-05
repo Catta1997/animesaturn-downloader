@@ -10,14 +10,20 @@ import locale
 import time
 import concurrent.futures
 from tqdm import tqdm
-
+import ast
 #config
-movie_folder = "download/"
-download_path = "download/"
-leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
-all = True #anime correlati
+config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
 #
-
+def import_config():
+    global config
+    with open('config.txt') as f:
+        config = (f.read())
+        #converte da stringa a  dizionario
+        config = ast.literal_eval(config)
+        f.close()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if (config['download_path'] is None):
+        config['download_path'] = dir_path + '/'
 only_link = list()
 list_link = list()
 correlati_list = list()
@@ -42,17 +48,17 @@ def checkDownload_Path(crawl_path):
 def download(url):
     file_name = url.split("/")[-1]
     #print(os.path.join(download_path,file_name.split("_")[0]))
-    checkDownload_Path(os.path.join(download_path,file_name.split("_")[0]))
-    with open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb") as file:
+    checkDownload_Path(os.path.join(config['download_path'],file_name.split("_")[0]))
+    with open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
-        with tqdm.wrapattr(open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
+        with tqdm.wrapattr(open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
             for chunk in response.iter_content(chunk_size=4096):
                 fout.write(chunk)
         file.write(response.content)
 
 def create_crawl():
     #creo un file vuoto, se presente sovrascrivo
-    checkDownload_Path(download_path) #verifico che path esista
+    checkDownload_Path(str(config['download_path'])) #verifico che path esista
     print("Rilevati %d episodi"%len(list_link))
     episodes = []
     while True:
@@ -119,7 +125,7 @@ def get_correlati(URL):
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(leng and is_lang):
+        if(config['only_ITA'] and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -177,6 +183,7 @@ start = time.time()
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
+    import_config()
     name = input("nome:")
     #name = "dxd"
     search(name)
@@ -208,7 +215,6 @@ def search(name):
         try:
             selected = int(input("ID ('0' per uscire):"))
             if(selected == 0) : exit(0)
-
             if (selected >  len(animes) or selected < 0):
                 print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
                 continue
