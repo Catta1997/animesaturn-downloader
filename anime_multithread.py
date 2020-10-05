@@ -1,5 +1,6 @@
 # importing the requests library 
-import requests,os,subprocess
+import requests
+import os
 import sys
 import signal, psutil
 from bs4 import BeautifulSoup
@@ -141,7 +142,7 @@ def reorder_correlati():
         if(debug):
             for t in pool._threads:
                 print(t)
-        results = pool.map(selected_anime, only_link)
+        pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
@@ -209,7 +210,7 @@ def selected_anime(URL):
             print(os.getpid())
             for t in pool._threads:
                 print(t)
-        results = pool.map(one_link, ep_list)
+        pool.map(one_link, ep_list)
     ep_list.clear()
 
 start = time.time()
@@ -281,6 +282,7 @@ def test(name):
     global test_ID
     test_ID = True
     search(name)
+    return 1
 
 
 

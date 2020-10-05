@@ -1,5 +1,6 @@
 # importing the requests library 
-import requests,os,subprocess
+import requests
+import os
 import sys
 import signal, psutil
 from bs4 import BeautifulSoup
@@ -82,7 +83,7 @@ def create_crawl():
     #print(episodes)
     print("\n")
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(episodes)) as pool:
-        results = pool.map(download, episodes)
+        pool.map(download, episodes)
     list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
@@ -102,7 +103,7 @@ def reorder_correlati():
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
         #for t in pool._threads:
         #    print(t)
-        results = pool.map(selected_anime, only_link)
+        pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
@@ -170,7 +171,7 @@ def selected_anime(URL):
         #print(os.getpid())
         #for t in pool._threads:
         #    print(t)
-        results = pool.map(one_link, ep_list)
+        pool.map(one_link, ep_list)
     ep_list.clear()
 
 start = time.time()
