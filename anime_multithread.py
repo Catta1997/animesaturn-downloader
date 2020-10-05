@@ -13,6 +13,7 @@ import getopt
 #config
 config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
 debug = False
+test_ID = False
 #
 def import_config():
     global config
@@ -90,36 +91,37 @@ def checkCrawl_Path(crawl_path):
 def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
-    checkCrawl_Path(config['crawl_path']) #verifico che path esista
-    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'w') as f:
-        f.write(crwd)
-        f.close()
-    print("Creo crawljob per %d episodi"%len(list_link))
-    for link in list_link:
-        sourcehtml = requests.get(link).text
-        source = re.findall("file: \"(.*)\",",sourcehtml)
-        try:
-            mp4_link = source[0]
-        except IndexError:
-            mp4_link = ""
-        if all_ep[link]=="-1":
-            download = "%s%s/"%(config['movie_folder'],titolo)
-        else:
-            download = "%s%s/Season_%s"%(config['download_path'],titolo,all_ep[link])
-        crwd = crwd + '''
-        {
-        text= %s
-        downloadFolder= %s
-        enabled= true
-        autoStart= true
-        autoConfirm= true
-        }
-        '''%(mp4_link,download)
-    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
-        print(config['crawl_path'])
-        f.write(crwd)
-        f.close()
-    list_link.clear()
+    if(not test_ID):
+        checkCrawl_Path(config['crawl_path']) #verifico che path esista
+        with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'w') as f:
+            f.write(crwd)
+            f.close()
+        print("Creo crawljob per %d episodi"%len(list_link))
+        for link in list_link:
+            sourcehtml = requests.get(link).text
+            source = re.findall("file: \"(.*)\",",sourcehtml)
+            try:
+                mp4_link = source[0]
+            except IndexError:
+                mp4_link = ""
+            if all_ep[link]=="-1":
+                download = "%s%s/"%(config['movie_folder'],titolo)
+            else:
+                download = "%s%s/Season_%s"%(config['download_path'],titolo,all_ep[link])
+            crwd = crwd + '''
+            {
+            text= %s
+            downloadFolder= %s
+            enabled= true
+            autoStart= true
+            autoConfirm= true
+            }
+            '''%(mp4_link,download)
+        with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
+            print(config['crawl_path'])
+            f.write(crwd)
+            f.close()
+        list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
     global titolo
@@ -249,17 +251,19 @@ def search(name):
         anime_list.append(dim.find('a')['href'])
         print("--------")
         x+=1
-    while True: #richiedere id se + sbagliato
-        try:
-            selected = int(input("ID ('0' per uscire):"))
-            if(selected == 0) : exit(0)
-
-            if (selected >  len(animes) or selected < 0):
-                print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
-                continue
-            break
-        except ValueError:
-            print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
+    if(test_ID):
+        selected = 1
+    else:
+        while True: #richiedere id se + sbagliato
+            try:
+                selected = int(input("ID ('0' per uscire):"))
+                if(selected == 0) : exit(0)
+                if (selected >  len(animes) or selected < 0):
+                    print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
+                    continue
+                break
+            except ValueError:
+                print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
         
     #selected = 2
     selected -=1 #la lista parte da 0
@@ -271,6 +275,13 @@ def search(name):
         season = 1
         selected_anime(URL)
     create_crawl()
+
+def test(name):
+    global test_ID
+    test_ID = True
+    search(name)
+
+
 
 if __name__ == "__main__":
     main()
