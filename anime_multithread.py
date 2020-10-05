@@ -1,4 +1,4 @@
-# importing the requests library 
+# importing the requests library
 import requests
 import os
 import sys
@@ -42,7 +42,7 @@ def cli():
     argv = sys.argv[1:]
     keyword = None
     try:
-        opts, args = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
+        opts = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
     except getopt.GetoptError:
         # stampa l'informazione di aiuto ed esce:
         usage()
@@ -128,7 +128,7 @@ def reorder_correlati():
     global titolo
     for URL in correlati_list:
         new_r = requests.get(url = URL, params = {})
-        pastebin_url = new_r.text 
+        pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
@@ -152,7 +152,7 @@ def get_correlati(URL):
     is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
     #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
     correlati_list.append(URL)
@@ -171,7 +171,7 @@ def one_link(ep):
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
     is_link = anime_page.find('a')['href']
-    if 'watch' in is_link: 
+    if 'watch' in is_link:
         episode = is_link+'&s=alt'
     all_ep[episode] = x[1]
     list_link.append(episode)
@@ -183,19 +183,19 @@ def selected_anime(URL):
     mutex = False
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
-    anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
+    anime_type = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
     while (mutex):
         time.sleep(0.5)
     mutex = True
-    if ('OVA' in anime_type.text or "Special" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]):
         season_num = 0
     elif "Movie" in info[0]:
         season_num = -1
-    else: 
+    else:
         season +=1
         season_num = season
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
@@ -235,7 +235,7 @@ def search(name):
     anime_list  = list()
     URL = "https://www.animesaturn.it/animelist"
     r = requests.get(url = URL, params = {"search":name})
-    pastebin_url = r.text 
+    pastebin_url = r.text
     html = pastebin_url
     parsed_html = BeautifulSoup(html,"html.parser")
     animes = parsed_html.find_all('ul', attrs={'class':'list-group'})
@@ -266,7 +266,6 @@ def search(name):
                 break
             except ValueError:
                 print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
-        
     #selected = 2
     selected -=1 #la lista parte da 0
     start = time.time()
@@ -283,8 +282,6 @@ def test(name):
     test_ID = True
     search(name)
     return 1
-
-
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# importing the requests library 
+# importing the requests library
 import requests
 import os
 import sys
@@ -97,7 +97,7 @@ def reorder_correlati():
     global titolo
     for URL in correlati_list:
         new_r = requests.get(url = URL, params = {})
-        pastebin_url = new_r.text 
+        pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
@@ -115,7 +115,7 @@ def get_correlati(URL):
     is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
     #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
     correlati_list.append(URL)
@@ -133,7 +133,7 @@ def selected_anime(URL):
     global season_num
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
@@ -142,7 +142,7 @@ def selected_anime(URL):
         season_num = 0
     elif "Movie" in info[0]:
         season_num = -1
-    else: 
+    else:
         season +=1
         season_num = season
     if season_num == 0: print("OVA")
@@ -184,7 +184,7 @@ def search(name):
     anime_list  = list()
     URL = "https://www.animesaturn.it/animelist"
     r = requests.get(url = URL, params = {"search":name})
-    pastebin_url = r.text 
+    pastebin_url = r.text
     html = pastebin_url
     parsed_html = BeautifulSoup(html,"html.parser")
     animes = parsed_html.find_all('ul', attrs={'class':'list-group'})
