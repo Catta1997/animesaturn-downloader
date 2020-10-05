@@ -1,5 +1,6 @@
 # importing the requests library 
-import requests,os,subprocess
+import requests
+import os
 import sys
 import signal
 from bs4 import BeautifulSoup
@@ -7,6 +8,7 @@ import re
 from datetime import datetime
 import locale
 import ast
+import getopt
 #config
 config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
 debug = False
@@ -25,7 +27,39 @@ def import_config():
         config['download_path'] = dir_path + '/'
     if (config['movie_folder'] is None):
         config['movie_folder'] = dir_path + '/'
-
+def usage():
+    usage = f"AnimeSaturn Usage:\n" \
+            f"\t-k, --keyword (str):\t\tSpecify the keyword to search\n" \
+            f"\t-s, --all (bool):\t\tDownload all seasons\n" \
+            f"\t--jdownloadpath (Path):\t\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath\n" \
+            f"\t--crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp\n" \
+            f"\t-h, --help:\t\t\tShow this screen\n"
+    print(usage)
+def cli():
+    argv = sys.argv[1:]
+    keyword = None
+    try:
+        opts, args = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
+    except getopt.GetoptError:
+        # stampa l'informazione di aiuto ed esce:
+        usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ['-k', '--keyword']:
+            keyword = arg
+        if opt in ['--jdownloadpath']:
+            config['download_path'] = arg
+        if opt in ['--crawlpath']:
+            config['crawl_path'] = arg
+        if opt in ['-a', '--all']:
+            if ('False' in str(arg)):
+                config['all'] = False
+            if ('True' in str(arg)):
+                config['all'] = True
+        if opt in ['-h', '--help']:
+            usage()
+            sys.exit(0)
+    return keyword
 list_link = list()
 correlati_list = list()
 anime = {}
@@ -68,14 +102,10 @@ def reorder_correlati():
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
         anime[release[0]] = URL
-        #release = anno.find('b','Data di uscita:')
-        #print(release)
     locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
     ordered_data = sorted(anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
     titolo = re.findall("(?<=anime/)(.*)", ordered_data[0][1])[0]
     for x in ordered_data:
-        #print(x[1])
-        #print(".-.-")
         selected_anime(x[1])
 
 def sig_handler(_signo, _stack_frame):
@@ -135,12 +165,23 @@ def selected_anime(URL):
         list_link.append(episode)
     create_crawl()
 def main():
-    global season
-    #titoli_anime = list()
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
+    key = None
+    import_config()
+    key = cli()
+    if (key is None):
+        name = input("nome:")
+    else:
+        name = key
+    if (debug):
+        print(config)
+    search(name)
+    return 1
+
+def search(name):
+    global season
     anime_list  = list()
-    name = input("nome:")
     URL = "https://www.animesaturn.it/animelist"
     r = requests.get(url = URL, params = {"search":name})
     pastebin_url = r.text 
