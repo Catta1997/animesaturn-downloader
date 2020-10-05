@@ -28,18 +28,20 @@ def import_config():
     if (config['movie_folder'] is None):
         config['movie_folder'] = dir_path + '/'
 def usage():
-    usage = f"AnimeSaturn Usage:\n" \
-            f"\t-k, --keyword (str):\t\tSpecify the keyword to search\n" \
-            f"\t-s, --all (bool):\t\tDownload all seasons\n" \
-            f"\t--jdownloadpath (Path):\t\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath\n" \
-            f"\t--crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp\n" \
-            f"\t-h, --help:\t\t\tShow this screen\n"
+    usage = '''
+AnimeSaturn Usage:
+    -k, --keyword (str):\tSpecify the keyword to search
+    -s, --all (bool):\t\tDownload all seasons
+    --jdownloadpath (Path):\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath
+    --crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp
+    -h, --help:\t\t\tShow this screen
+        '''
     print(usage)
 def cli():
     argv = sys.argv[1:]
     keyword = None
     try:
-        opts, args = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
+        opts = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
     except getopt.GetoptError:
         # stampa l'informazione di aiuto ed esce:
         usage()
@@ -138,7 +140,7 @@ def selected_anime(URL):
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    if ('OVA' in anime_type.text or "Special" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]):
         season_num = 0
     elif "Movie" in info[0]:
         season_num = -1
@@ -151,7 +153,7 @@ def selected_anime(URL):
     list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
-        title = dim.find('a',attrs={})
+        #title = dim.find('a',attrs={})
         new_r = requests.get(url = episode, params = {})
         pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")

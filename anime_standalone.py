@@ -152,7 +152,7 @@ def selected_anime(URL):
     while (mutex):
         time.sleep(0.5)
     mutex = True
-    if ('OVA' in anime_type.text or "Special" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]):
         season_num = 0
     elif "Movie" in info[0]:
         season_num = -1

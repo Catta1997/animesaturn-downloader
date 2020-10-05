@@ -31,12 +31,14 @@ def import_config():
     if (config['movie_folder'] is None):
         config['movie_folder'] = dir_path + '/'
 def usage():
-    usage = f"AnimeSaturn Usage:\n" \
-            f"\t-k, --keyword (str):\t\tSpecify the keyword to search\n" \
-            f"\t-s, --all (bool):\t\tDownload all seasons\n" \
-            f"\t--jdownloadpath (Path):\t\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath\n" \
-            f"\t--crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp\n" \
-            f"\t-h, --help:\t\t\tShow this screen\n"
+    usage = '''
+AnimeSaturn Usage:
+    -k, --keyword (str):\tSpecify the keyword to search
+    -s, --all (bool):\t\tDownload all seasons
+    --jdownloadpath (Path):\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath
+    --crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp
+    -h, --help:\t\t\tShow this screen
+        '''
     print(usage)
 def cli():
     argv = sys.argv[1:]
