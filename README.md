@@ -6,6 +6,8 @@
 ![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/tqdm?color=yellow)
 ![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/wget?color=yellow)
 
+[![Build Status](https://travis-ci.org/Catta1997/animesaturn-downloader.svg?branch=master)](https://travis-ci.org/Catta1997/animesaturn-downloader)
+
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)   
 ### Installazione
   - Installate i requisiti contenuti in "requirment.txt"

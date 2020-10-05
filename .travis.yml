@@ -1,6 +1,10 @@
 language: python
 python:
   - 3.8
+addons:
+    apt:
+        packages:
+            - language-pack-it
 before_install:
   - pip install -r requirements.txt
   - pip install -U pytest
