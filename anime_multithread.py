@@ -9,6 +9,7 @@ import locale
 import time
 import concurrent.futures
 import ast
+import getopt
 #config
 config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
 debug = False
@@ -27,6 +28,40 @@ def import_config():
         config['download_path'] = dir_path + '/'
     if (config['movie_folder'] is None):
         config['movie_folder'] = dir_path + '/'
+def usage():
+    usage = f"AnimeSaturn Usage:\n" \
+            f"\t-k, --keyword (str):\t\tSpecify the keyword to search\n" \
+            f"\t-s, --all (bool):\t\tDownload all seasons\n" \
+            f"\t--jdownloadpath (Path):\t\tDestination folder for the anime dir. MUST be used in conjunction with --crawlpath\n" \
+            f"\t--crawlpath (Path):\t\tDestination folder for the crawljobs. MUST be used in conjunction with -jdp\n" \
+            f"\t-h, --help:\t\t\tShow this screen\n"
+    print(usage)
+def cli():
+    argv = sys.argv[1:]
+    keyword = None
+    try:
+        opts, args = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
+    except getopt.GetoptError:
+        # stampa l'informazione di aiuto ed esce:
+        usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ['-k', '--keyword']:
+            keyword = arg
+        if opt in ['--jdownloadpath']:
+            config['download_path'] = arg
+        if opt in ['--crawlpath']:
+            config['crawl_path'] = arg
+        if opt in ['-a', '--all']:
+            if ('False' in str(arg)):
+                config['all'] = False
+            if ('True' in str(arg)):
+                config['all'] = True
+        if opt in ['-h', '--help']:
+            usage()
+            sys.exit(0)
+    return keyword
+
 
 only_link = list()
 list_link = list()
@@ -179,10 +214,17 @@ start = time.time()
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    name = input("nome:")
+    key = None
     import_config()
-
+    key = cli()
+    if (key is None):
+        name = input("nome:")
+    else:
+        name = key
+    if (debug):
+        print(config)
     search(name)
+
 def search(name):
     global start
     global season
