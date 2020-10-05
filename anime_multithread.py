@@ -8,14 +8,25 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-
+import ast
 #config
-movie_folder = "DownloadMovieFolder/"
-download_path = "DownloadFolder/"
-crawl_path = "CrawlDefaultDir/" 
-leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
-all = True #anime correlati
+config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
+debug = False
 #
+def import_config():
+    global config
+    with open('config.txt') as f:
+            config = (f.read())
+            #converte da stringa a  dizionario
+            config = ast.literal_eval(config)
+            f.close()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if (config['crawl_path'] is None):
+        config['crawl_path'] = dir_path + '/'
+    if (config['download_path'] is None):
+        config['download_path'] = dir_path + '/'
+    if (config['movie_folder'] is None):
+        config['movie_folder'] = dir_path + '/'
 
 only_link = list()
 list_link = list()
@@ -35,25 +46,31 @@ def kill_child_processes(parent_pid, sig=signal.SIGTERM):
         process.send_signal(sig)
 
 def checkCrawl_Path(crawl_path):
+    print(crawl_path)
     if(not os.path.isdir(crawl_path)):
+        print("kjk")
         os.makedirs(crawl_path)
 
 
 def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
-    checkCrawl_Path(crawl_path) #verifico che path esista
-    with open("%s%s.crawljob"%(crawl_path,titolo), 'w') as f:
+    checkCrawl_Path(config['crawl_path']) #verifico che path esista
+    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'w') as f:
         f.write(crwd)
         f.close()
     print("Creo crawljob per %d episodi"%len(list_link))
     for link in list_link:
         sourcehtml = requests.get(link).text
         source = re.findall("file: \"(.*)\",",sourcehtml)
+        try:
+            mp4_link = source[0]
+        except IndexError:
+            mp4_link = ""
         if all_ep[link]=="-1":
-            download = "%s%s/"%(movie_folder,titolo)
+            download = "%s%s/"%(config['movie_folder'],titolo)
         else:
-            download = "%s%s/Season_%s"%(download_path,titolo,all_ep[link])
+            download = "%s%s/Season_%s"%(config['download_path'],titolo,all_ep[link])
         crwd = crwd + '''
         {
         text= %s
@@ -62,8 +79,9 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(source[0],download)
-    with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
+        '''%(mp4_link,download)
+    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
+        print(config['crawl_path'])
         f.write(crwd)
         f.close()
     list_link.clear()
@@ -83,8 +101,9 @@ def reorder_correlati():
     for x in ordered_data:
         only_link.append(x[1])
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
-        for t in pool._threads:
-            print(t)
+        if(debug):
+            for t in pool._threads:
+                print(t)
         results = pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
@@ -101,7 +120,7 @@ def get_correlati(URL):
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(leng and is_lang):
+        if(config['only_ITA'] and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -149,9 +168,10 @@ def selected_anime(URL):
         ep_list.append(episode)
     mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
-        print(os.getpid())
-        for t in pool._threads:
-            print(t)
+        if(debug):
+            print(os.getpid())
+            for t in pool._threads:
+                print(t)
         results = pool.map(one_link, ep_list)
     ep_list.clear()
 
@@ -160,7 +180,8 @@ def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
     name = input("nome:")
-    #name = "dxd"
+    import_config()
+
     search(name)
 def search(name):
     global start
@@ -202,7 +223,7 @@ def search(name):
     selected -=1 #la lista parte da 0
     start = time.time()
     URL = anime_list[selected]
-    if(all):
+    if(config['all']):
         get_correlati(URL)
     else:
         season = 1
@@ -212,4 +233,5 @@ def search(name):
 if __name__ == "__main__":
     main()
     start_time = start
-    print("--- %s seconds ---" % (time.time() - start_time))
+    if(debug):
+        print("--- %s seconds ---" % (time.time() - start_time))

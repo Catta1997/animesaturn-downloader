@@ -6,13 +6,25 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime
 import locale
-
+import ast
 #config
-download_path = "DownloadDir/"
-crawl_path = "CrawlDefaultDir/" 
-leng = True
-all = True #anime correlati
+config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
+debug = False
 #
+def import_config():
+    global config
+    with open('config.txt') as f:
+            config = (f.read())
+            #converte da stringa a  dizionario
+            config = ast.literal_eval(config)
+            f.close()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if (config['crawl_path'] is None):
+        config['crawl_path'] = dir_path + '/'
+    if (config['download_path'] is None):
+        config['download_path'] = dir_path + '/'
+    if (config['movie_folder'] is None):
+        config['movie_folder'] = dir_path + '/'
 
 list_link = list()
 correlati_list = list()
@@ -27,10 +39,14 @@ def checkCrawl_Path(crawl_path):
 
 def create_crawl():
     crwd = ""
-    checkCrawl_Path(crawl_path) #verifico che path esista
+    checkCrawl_Path(config['crawl_path']) #verifico che path esista
     for link in list_link:
         sourcehtml = requests.get(link).text
         source = re.findall("file: \"(.*)\",",sourcehtml)
+        try:
+            mp4_link = source[0]
+        except IndexError:
+            mp4_link = ""
         crwd = crwd + '''
         {
         text= %s
@@ -39,8 +55,8 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(source[0],download_path,titolo,season_num)
-    with open("%s%s.crawljob"%(crawl_path,titolo), 'a') as f:
+        '''%(mp4_link,config['download_path'],titolo,season_num)
+    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
         f.write(crwd)
         f.close()
 def reorder_correlati():
@@ -77,7 +93,7 @@ def get_correlati(URL):
         anime = dim.find('a')['href']
         #print("Season %d -> Titolo %s"%(season,anime))
         #selected_anime(anime)
-        if(leng and is_lang):
+        if(config['only_ITA'] and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -92,8 +108,10 @@ def selected_anime(URL):
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
     anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
-    if ('OVA' in anime_type.text or "Special" in info[0] or "Movie" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]): 
         season_num = 0
+    elif "Movie" in info[0]:
+        season_num = -1
     else: 
         season +=1
         season_num = season
@@ -158,7 +176,7 @@ def main():
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
     #titolo = titoli_anime[selected]
-    if(all):
+    if(config['all']):
         #print("Correlati:")
         get_correlati(URL)
     else:

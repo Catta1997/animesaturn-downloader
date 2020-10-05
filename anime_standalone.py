@@ -39,14 +39,6 @@ def checkDownload_Path(crawl_path):
     if(not os.path.isdir(crawl_path)):
         os.makedirs(crawl_path)
 
-def find_between( s, first, last ):
-    try:
-        start = s.index( first ) + len( first )
-        end = s.index( last, start )
-        return s[start:end]
-    except ValueError:
-        return ""
-
 def download(url, file_name):
     print(os.path.join(download_path,file_name.split("_")[0]))
     checkDownload_Path(os.path.join(download_path,file_name.split("_")[0]))
@@ -79,8 +71,12 @@ def create_crawl():
     for episodedata in list_link:
         if(start <= int(episodedata[1]) <= finish):
             sourcehtml = requests.get(episodedata[0]).text
-            source = find_between(sourcehtml, "file:",",").replace("\"","")
-            download(source,source.split("/")[-1])
+            source = re.findall("file: \"(.*)\",",sourcehtml)
+            try:
+                mp4_link = source[0]
+            except IndexError:
+                mp4_link = ""
+            download(mp4_link,source.split("/")[-1])
     list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
