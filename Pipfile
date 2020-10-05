@@ -9,8 +9,8 @@ verify_ssl = true
 beautifulsoup4 = "==4.9.1"
 requests = "==2.24.0"
 psutil = "==5.7.2"
-tqdm = "*"
-wget = "*"
+tqdm = "==4.50.0"
+wget = "==3.2"
 
 [requires]
 python_version = "3.8"

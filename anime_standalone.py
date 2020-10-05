@@ -39,8 +39,9 @@ def checkDownload_Path(crawl_path):
     if(not os.path.isdir(crawl_path)):
         os.makedirs(crawl_path)
 
-def download(url, file_name):
-    print(os.path.join(download_path,file_name.split("_")[0]))
+def download(url):
+    file_name = url.split("/")[-1]
+    #print(os.path.join(download_path,file_name.split("_")[0]))
     checkDownload_Path(os.path.join(download_path,file_name.split("_")[0]))
     with open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
@@ -53,6 +54,7 @@ def create_crawl():
     #creo un file vuoto, se presente sovrascrivo
     checkDownload_Path(download_path) #verifico che path esista
     print("Rilevati %d episodi"%len(list_link))
+    episodes = []
     while True:
         try:
             wantedEps = input("Dammi Range Episodi (1:%d) "%len(list_link)).split(":")
@@ -67,7 +69,6 @@ def create_crawl():
             print("Invalido!")
         except ValueError:
             print("Invalido!")
-
     for episodedata in list_link:
         if(start <= int(episodedata[1]) <= finish):
             sourcehtml = requests.get(episodedata[0]).text
@@ -76,7 +77,12 @@ def create_crawl():
                 mp4_link = source[0]
             except IndexError:
                 mp4_link = ""
-            download(mp4_link,source.split("/")[-1])
+            episodes.append(mp4_link)
+            #download(mp4_link,mp4_link.split("/")[-1])
+    #print(episodes)
+    print("\n")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(episodes)) as pool:
+        results = pool.map(download, episodes)
     list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
@@ -94,8 +100,8 @@ def reorder_correlati():
     for x in ordered_data:
         only_link.append(x[1])
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
-        for t in pool._threads:
-            print(t)
+        #for t in pool._threads:
+        #    print(t)
         results = pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
@@ -161,9 +167,9 @@ def selected_anime(URL):
         ep_list.append(episode)
     mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
-        print(os.getpid())
-        for t in pool._threads:
-            print(t)
+        #print(os.getpid())
+        #for t in pool._threads:
+        #    print(t)
         results = pool.map(one_link, ep_list)
     ep_list.clear()
 
