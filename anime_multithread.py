@@ -2,7 +2,8 @@
 import requests
 import os
 import sys
-import signal, psutil
+import signal
+import psutil
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
@@ -261,7 +262,8 @@ def search(name):
         while True: #richiedere id se + sbagliato
             try:
                 selected = int(input("ID ('0' per uscire):"))
-                if(selected == 0) : exit(0)
+                if (selected == 0):
+                    exit(0)
                 if (selected >  len(animes) or selected < 0):
                     print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
                     continue

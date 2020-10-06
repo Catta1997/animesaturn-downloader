@@ -2,7 +2,8 @@
 import requests
 import os
 import sys
-import signal, psutil
+import signal
+import psutil
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
@@ -23,7 +24,7 @@ def import_config():
         f.close()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if (config['download_path'] is None):
-        config['download_path'] = dir_path + '/'
+        config['download_path'] = dir_path + '/AnimeSaturn_Download'
 only_link = list()
 list_link = list()
 correlati_list = list()
@@ -214,7 +215,8 @@ def search(name):
     while True: #richiedere id se + sbagliato
         try:
             selected = int(input("ID ('0' per uscire):"))
-            if(selected == 0) : exit(0)
+            if (selected == 0) :
+                exit(0)
             if (selected >  len(animes) or selected < 0):
                 print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
                 continue
@@ -225,7 +227,7 @@ def search(name):
     selected -=1 #la lista parte da 0
     start = time.time()
     URL = anime_list[selected]
-    if(all):
+    if(config['all']):
         get_correlati(URL)
     else:
         season = 1

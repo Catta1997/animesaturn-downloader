@@ -147,7 +147,8 @@ def selected_anime(URL):
     else:
         season +=1
         season_num = season
-    if season_num == 0: print("OVA")
+    if (season_num == 0):
+        print("OVA")
     else : print("Stagione %d"%season_num)
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
     list_link.clear()
@@ -159,7 +160,8 @@ def selected_anime(URL):
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
         anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
         is_link = anime_page.find('a')['href']
-        if 'watch' in is_link: episode = is_link+'&s=alt'
+        if ('watch' in is_link):
+            episode = is_link+'&s=alt'
         new_r = requests.get(url = episode, params = {})
         pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
@@ -208,8 +210,8 @@ def search(name):
     while True: #richiedere id se + sbagliato
         try:
             selected = int(input("ID ('0' per uscire):"))
-            if(selected == 0) : exit(0)
-
+            if (selected == 0) : 
+                exit(0)
             if (selected >  len(animes) or selected < 0):
                 print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
                 continue
