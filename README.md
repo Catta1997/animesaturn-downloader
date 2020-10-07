@@ -5,6 +5,7 @@
 ![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/psutil?color=yellow)
 ![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/tqdm?color=yellow)
 ![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/wget?color=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/configparser?color=yellow)
 
 [![CodeFactor](https://www.codefactor.io/repository/github/catta1997/animesaturn-downloader/badge/master)](https://www.codefactor.io/repository/github/catta1997/animesaturn-downloader/overview/master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/be1ac1ec55dc48678fbcaf15f8e69e3a)](https://app.codacy.com/gh/Catta1997/animesaturn-downloader?utm_source=github.com&utm_medium=referral&utm_content=Catta1997/animesaturn-downloader&utm_campaign=Badge_Grade)
