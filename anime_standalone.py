@@ -11,7 +11,6 @@ import locale
 import time
 import concurrent.futures
 from tqdm import tqdm
-import ast
 import configparser
 #config
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
