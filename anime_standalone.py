@@ -1,23 +1,30 @@
-# importing the requests library 
-import requests,os,subprocess
+# importing the requests library
+import requests
+import os
 import sys
-import signal, psutil
+import signal
+import psutil
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import wget
 from tqdm import tqdm
-
+import ast
 #config
-movie_folder = "download/"
-download_path = "download/"
-leng = True #solo anime in italiano (utile per gli anime doppiati, es: SAO)
-all = True #anime correlati
+config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
 #
-
+def import_config():
+    global config
+    with open('config.txt') as f:
+        config = (f.read())
+        #converte da stringa a  dizionario
+        config = ast.literal_eval(config)
+        f.close()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    if (config['download_path'] is None):
+        config['download_path'] = dir_path + '/AnimeSaturn_Download'
 only_link = list()
 list_link = list()
 correlati_list = list()
@@ -39,28 +46,22 @@ def checkDownload_Path(crawl_path):
     if(not os.path.isdir(crawl_path)):
         os.makedirs(crawl_path)
 
-def find_between( s, first, last ):
-    try:
-        start = s.index( first ) + len( first )
-        end = s.index( last, start )
-        return s[start:end]
-    except ValueError:
-        return ""
-
-def download(url, file_name):
-    print(os.path.join(download_path,file_name.split("_")[0]))
-    checkDownload_Path(os.path.join(download_path,file_name.split("_")[0]))
-    with open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb") as file:
+def download(url):
+    file_name = url.split("/")[-1]
+    #print(os.path.join(download_path,file_name.split("_")[0]))
+    checkDownload_Path(os.path.join(config['download_path'],file_name.split("_")[0]))
+    with open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
-        with tqdm.wrapattr(open(os.path.join(download_path,file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
+        with tqdm.wrapattr(open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
             for chunk in response.iter_content(chunk_size=4096):
                 fout.write(chunk)
         file.write(response.content)
 
 def create_crawl():
     #creo un file vuoto, se presente sovrascrivo
-    checkDownload_Path(download_path) #verifico che path esista
+    checkDownload_Path(str(config['download_path'])) #verifico che path esista
     print("Rilevati %d episodi"%len(list_link))
+    episodes = []
     while True:
         try:
             wantedEps = input("Dammi Range Episodi (1:%d) "%len(list_link)).split(":")
@@ -75,19 +76,27 @@ def create_crawl():
             print("Invalido!")
         except ValueError:
             print("Invalido!")
-
     for episodedata in list_link:
         if(start <= int(episodedata[1]) <= finish):
             sourcehtml = requests.get(episodedata[0]).text
-            source = find_between(sourcehtml, "file:",",").replace("\"","")
-            download(source,source.split("/")[-1])
+            source = re.findall("file: \"(.*)\",",sourcehtml)
+            try:
+                mp4_link = source[0]
+            except IndexError:
+                mp4_link = ""
+            episodes.append(mp4_link)
+            #download(mp4_link,mp4_link.split("/")[-1])
+    #print(episodes)
+    print("\n")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(episodes)) as pool:
+        pool.map(download, episodes)
     list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 def reorder_correlati():
     global titolo
     for URL in correlati_list:
         new_r = requests.get(url = URL, params = {})
-        pastebin_url = new_r.text 
+        pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
@@ -98,9 +107,9 @@ def reorder_correlati():
     for x in ordered_data:
         only_link.append(x[1])
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(only_link)) as pool:
-        for t in pool._threads:
-            print(t)
-        results = pool.map(selected_anime, only_link)
+        #for t in pool._threads:
+        #    print(t)
+        pool.map(selected_anime, only_link)
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
@@ -111,13 +120,13 @@ def get_correlati(URL):
     is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
     #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(leng and is_lang):
+        if(config['only_ITA'] and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -131,7 +140,7 @@ def one_link(ep):
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
     is_link = anime_page.find('a')['href']
-    if 'watch' in is_link: 
+    if 'watch' in is_link:
         episode = is_link+'&s=alt'
     list_link.append([episode,epnumber])
 
@@ -142,19 +151,19 @@ def selected_anime(URL):
     mutex = False
     #visito la pagina, trovo il tasto per l'episodio. Sucessivamente analizzo quella  pagina e ottengo il link di streaming
     new_r = requests.get(url = URL, params = {})
-    pastebin_url = new_r.text 
+    pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     all_info = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
     info = re.findall("(?<=<b>Episodi:</b> )(.*)(?=<br/>)",str(all_info))
-    anime_type = anime_page = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
+    anime_type = parsed_html.find('span', attrs={'class':'badge badge-secondary'})
     while (mutex):
         time.sleep(0.5)
     mutex = True
-    if ('OVA' in anime_type.text or "Special" in info[0]): 
+    if ('OVA' in anime_type.text or "Special" in info[0]):
         season_num = 0
     elif "Movie" in info[0]:
         season_num = -1
-    else: 
+    else:
         season +=1
         season_num = season
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
@@ -165,16 +174,17 @@ def selected_anime(URL):
         ep_list.append(episode)
     mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
-        print(os.getpid())
-        for t in pool._threads:
-            print(t)
-        results = pool.map(one_link, ep_list)
+        #print(os.getpid())
+        #for t in pool._threads:
+        #    print(t)
+        pool.map(one_link, ep_list)
     ep_list.clear()
 
 start = time.time()
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
+    import_config()
     name = input("nome:")
     #name = "dxd"
     search(name)
@@ -184,7 +194,7 @@ def search(name):
     anime_list  = list()
     URL = "https://www.animesaturn.it/animelist"
     r = requests.get(url = URL, params = {"search":name})
-    pastebin_url = r.text 
+    pastebin_url = r.text
     html = pastebin_url
     parsed_html = BeautifulSoup(html,"html.parser")
     animes = parsed_html.find_all('ul', attrs={'class':'list-group'})
@@ -205,20 +215,19 @@ def search(name):
     while True: #richiedere id se + sbagliato
         try:
             selected = int(input("ID ('0' per uscire):"))
-            if(selected == 0) : exit(0)
-
+            if (selected == 0) :
+                exit(0)
             if (selected >  len(animes) or selected < 0):
                 print("\x1b[31mCi sono solo %d risultati\x1b[0m"%len(animes))
                 continue
             break
         except ValueError:
             print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
-        
     #selected = 2
     selected -=1 #la lista parte da 0
     start = time.time()
     URL = anime_list[selected]
-    if(all):
+    if(config['all']):
         get_correlati(URL)
     else:
         season = 1
