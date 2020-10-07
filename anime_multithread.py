@@ -10,27 +10,24 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import ast
 import getopt
+import configparser
+
 #config
-config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
+dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+config = configparser.ConfigParser()
+config.read('config.ini')
 debug = False
 test_ID = False
 #
 def import_config():
-    global config
-    with open('config.txt') as f:
-            config = (f.read())
-            #converte da stringa a  dizionario
-            config = ast.literal_eval(config)
-            f.close()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    if (config['crawl_path'] is None):
-        config['crawl_path'] = dir_path + '/'
-    if (config['download_path'] is None):
-        config['download_path'] = dir_path + '/'
-    if (config['movie_folder'] is None):
-        config['movie_folder'] = dir_path + '/'
+    if (config["DEFAULT"].get("crawl_path") is (None or "")):
+        config["DEFAULT"]['crawl_path'] = dir_path + "crawl_path/"
+    if (config["DEFAULT"].get("download_path") is (None or "")):
+        config["DEFAULT"]['download_path'] = dir_path + "download_path/"
+    if (config["DEFAULT"].get("movie_folder") is (None or "")):
+        config["DEFAULT"]['movie_folder'] = dir_path + "movie_folder/"
+
 def usage():
     usage = '''
 AnimeSaturn Usage:
@@ -47,21 +44,21 @@ def cli():
     try:
         opts = getopt.getopt(argv, 'k:hac', ['keyword=','jdownloadpath=', 'crawlpath=', 'downloadpath=', 'all='])
     except getopt.GetoptError:
-        # stampa l'informazione di aiuto ed esce:
+        # stampa l'informazione di aiuto ed esce:ValueError: not enough values to unpack (expected 2, got 0)
         usage()
         sys.exit(2)
     for opt, arg in opts:
         if opt in ['-k', '--keyword']:
             keyword = arg
         if opt in ['--jdownloadpath']:
-            config['download_path'] = arg
+            config["DEFAULT"]['download_path'] = arg
         if opt in ['--crawlpath']:
-            config['crawl_path'] = arg
+            config["DEFAULT"]['crawl_path'] = arg
         if opt in ['-a', '--all']:
             if ('False' in str(arg)):
-                config['all'] = False
+                config["DEFAULT"]['all'] = False
             if ('True' in str(arg)):
-                config['all'] = True
+                config["DEFAULT"]['all'] = True
         if opt in ['-h', '--help']:
             usage()
             sys.exit(0)
@@ -96,8 +93,8 @@ def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
     if(not test_ID):
-        checkCrawl_Path(config['crawl_path']) #verifico che path esista
-        with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'w') as f:
+        checkCrawl_Path(config["DEFAULT"]['crawl_path']) #verifico che path esista
+        with open("%s%s.crawljob"%(config["DEFAULT"]['crawl_path'],titolo), 'w') as f:
             f.write(crwd)
             f.close()
         print("Creo crawljob per %d episodi"%len(list_link))
@@ -109,9 +106,9 @@ def create_crawl():
             except IndexError:
                 mp4_link = ""
             if all_ep[link]=="-1":
-                download = "%s%s/"%(config['movie_folder'],titolo)
+                download = "%s%s/"%(config["DEFAULT"]['movie_folder'],titolo)
             else:
-                download = "%s%s/Season_%s"%(config['download_path'],titolo,all_ep[link])
+                download = "%s%s/Season_%s"%(config["DEFAULT"]['download_path'],titolo,all_ep[link])
             crwd = crwd + '''
             {
             text= %s
@@ -121,8 +118,8 @@ def create_crawl():
             autoConfirm= true
             }
             '''%(mp4_link,download)
-        with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
-            print(config['crawl_path'])
+        with open("%s%s.crawljob"%(config["DEFAULT"]['crawl_path'],titolo), 'a') as f:
+            print(config["DEFAULT"]['crawl_path'])
             f.write(crwd)
             f.close()
         list_link.clear()
@@ -161,7 +158,7 @@ def get_correlati(URL):
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(config['only_ITA'] and is_lang):
+        if(config["DEFAULT"].getboolean('only_ITA') and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -220,9 +217,10 @@ start = time.time()
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    key = None
     import_config()
-    key = cli()
+    #key = cli()
+    # rivedere funzione cli()
+    key = None
     if (key is None):
         name = input("nome:")
     else:
@@ -274,7 +272,7 @@ def search(name):
     selected -=1 #la lista parte da 0
     start = time.time()
     URL = anime_list[selected]
-    if(config['all']):
+    if(config["DEFAULT"].getboolean('all')):
         get_correlati(URL)
     else:
         season = 1
