@@ -10,7 +10,6 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import ast
 import getopt
 import configparser
 
