@@ -219,7 +219,7 @@ def main():
     signal.signal(signal.SIGINT, sig_handler)
     import_config()
     #key = cli()
-    #TODO rivedere funzione cli()
+    # rivedere funzione cli()
     key = None
     if (key is None):
         name = input("nome:")
