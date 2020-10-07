@@ -9,24 +9,20 @@ from datetime import datetime
 import locale
 import ast
 import getopt
+import configparser
 #config
-config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
+dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+config = configparser.ConfigParser()
+config.read('config.ini')
 debug = False
 #
 def import_config():
-    global config
-    with open('config.txt') as f:
-            config = (f.read())
-            #converte da stringa a  dizionario
-            config = ast.literal_eval(config)
-            f.close()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    if (config['crawl_path'] is None):
-        config['crawl_path'] = dir_path + '/'
-    if (config['download_path'] is None):
-        config['download_path'] = dir_path + '/'
-    if (config['movie_folder'] is None):
-        config['movie_folder'] = dir_path + '/'
+    if (config["DEFAULT"].get("crawl_path") is (None or "")):
+        config["DEFAULT"]['crawl_path'] = dir_path + "crawl_path/"
+    if (config["DEFAULT"].get("download_path") is (None or "")):
+        config["DEFAULT"]['download_path'] = dir_path + "download_path/"
+    if (config["DEFAULT"].get("movie_folder") is (None or "")):
+        config["DEFAULT"]['movie_folder'] = dir_path + "movie_folder/"
 def usage():
     usage = '''
 AnimeSaturn Usage:
@@ -50,14 +46,14 @@ def cli():
         if opt in ['-k', '--keyword']:
             keyword = arg
         if opt in ['--jdownloadpath']:
-            config['download_path'] = arg
+            config['DEFAULT']['download_path'] = arg
         if opt in ['--crawlpath']:
-            config['crawl_path'] = arg
+            config['DEFAULT']['crawl_path'] = arg
         if opt in ['-a', '--all']:
             if ('False' in str(arg)):
-                config['all'] = False
+                config['DEFAULT']['all'] = False
             if ('True' in str(arg)):
-                config['all'] = True
+                config['DEFAULT']['all'] = True
         if opt in ['-h', '--help']:
             usage()
             sys.exit(0)
@@ -75,7 +71,7 @@ def checkCrawl_Path(crawl_path):
 
 def create_crawl():
     crwd = ""
-    checkCrawl_Path(config['crawl_path']) #verifico che path esista
+    checkCrawl_Path(config['DEFAULT']["crawl_path"]) #verifico che path esista
     for link in list_link:
         sourcehtml = requests.get(link).text
         source = re.findall("file: \"(.*)\",",sourcehtml)
@@ -91,8 +87,8 @@ def create_crawl():
         autoStart= true
         autoConfirm= true
         }
-        '''%(mp4_link,config['download_path'],titolo,season_num)
-    with open("%s%s.crawljob"%(config['crawl_path'],titolo), 'a') as f:
+        '''%(mp4_link,config['DEFAULT']['download_path'],titolo,season_num)
+    with open("%s%s.crawljob"%(config['DEFAULT']['crawl_path'],titolo), 'a') as f:
         f.write(crwd)
         f.close()
 def reorder_correlati():
@@ -125,7 +121,7 @@ def get_correlati(URL):
         anime = dim.find('a')['href']
         #print("Season %d -> Titolo %s"%(season,anime))
         #selected_anime(anime)
-        if(config['only_ITA'] and is_lang):
+        if(config['DEFAULT'].getboolean('only_ITA') and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -171,9 +167,11 @@ def selected_anime(URL):
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    key = None
     import_config()
-    key = cli()
+    #key = cli()
+    #TODO rivedere funzione cli()
+    key = None
+
     if (key is None):
         name = input("nome:")
     else:
@@ -221,7 +219,7 @@ def search(name):
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
     #titolo = titoli_anime[selected]
-    if(config['all']):
+    if(config['DEFAULT'].getboolean('all')):
         #print("Correlati:")
         get_correlati(URL)
     else:

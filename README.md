@@ -18,3 +18,14 @@
 - Entrate in virtualenv con `source venv/bin/activate`
 - Aggiornate pip `pip install -U pip`
 - Installate le. dipendenze `pip install -r requirements.txt`
+### Config
+  - editare il file config.ini
+  ```
+  [DEFAULT]
+  crawl_path = 
+  download_path = 
+  movie_folder = 
+  all = True
+  only_ITA = False
+  ```
+  lasciare il valore vuoto per la path di default oppure inserire una nuova path Es: "C:\Users\utente\anime\"

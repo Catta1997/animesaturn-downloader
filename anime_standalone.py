@@ -12,19 +12,23 @@ import time
 import concurrent.futures
 from tqdm import tqdm
 import ast
+import configparser
 #config
-config = {'crawl_path': None, 'download_path': None, 'movie_folder' : None, 'all': True, 'only_ITA':True}
-#
+dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+config = configparser.ConfigParser()
+config.read('config.ini')
+debug = False
+test_ID = False
+
 def import_config():
-    global config
-    with open('config.txt') as f:
-        config = (f.read())
-        #converte da stringa a  dizionario
-        config = ast.literal_eval(config)
-        f.close()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    if (config['download_path'] is None):
-        config['download_path'] = dir_path + '/AnimeSaturn_Download'
+    if (config["DEFAULT"].get("crawl_path") is (None or "")):
+        config["DEFAULT"]['crawl_path'] = dir_path + "crawl_path/"
+    if (config["DEFAULT"].get("download_path") is (None or "")):
+        config["DEFAULT"]['download_path'] = dir_path + "download_path/"
+    if (config["DEFAULT"].get("movie_folder") is (None or "")):
+        config["DEFAULT"]['movie_folder'] = dir_path + "movie_folder/"
+
+
 only_link = list()
 list_link = list()
 correlati_list = list()
@@ -49,17 +53,17 @@ def checkDownload_Path(crawl_path):
 def download(url):
     file_name = url.split("/")[-1]
     #print(os.path.join(download_path,file_name.split("_")[0]))
-    checkDownload_Path(os.path.join(config['download_path'],file_name.split("_")[0]))
-    with open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb") as file:
+    checkDownload_Path(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0]))
+    with open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
-        with tqdm.wrapattr(open(os.path.join(config['download_path'],file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
+        with tqdm.wrapattr(open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
             for chunk in response.iter_content(chunk_size=4096):
                 fout.write(chunk)
         file.write(response.content)
 
 def create_crawl():
     #creo un file vuoto, se presente sovrascrivo
-    checkDownload_Path(str(config['download_path'])) #verifico che path esista
+    checkDownload_Path(str(config["DEFAULT"]['download_path'])) #verifico che path esista
     print("Rilevati %d episodi"%len(list_link))
     episodes = []
     while True:
@@ -126,7 +130,7 @@ def get_correlati(URL):
     correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(config['only_ITA'] and is_lang):
+        if(config["DEFAULT"].getboolean('only_ITA') and is_lang):
             if("-ITA" in anime):
                 correlati_list.append(anime)
         else: correlati_list.append(anime)
@@ -227,7 +231,7 @@ def search(name):
     selected -=1 #la lista parte da 0
     start = time.time()
     URL = anime_list[selected]
-    if(config['all']):
+    if(config["DEFAULT"].getboolean('all')):
         get_correlati(URL)
     else:
         season = 1
