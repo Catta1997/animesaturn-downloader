@@ -11,6 +11,7 @@ requests = "==2.24.0"
 psutil = "==5.7.2"
 tqdm = "==4.50.0"
 wget = "==3.2"
+configparser = "*"
 
 [requires]
 python_version = "3.8"
