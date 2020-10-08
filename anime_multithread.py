@@ -103,6 +103,7 @@ def main():
     return 1
 
 def test(name):
+    init.file_type = 0
     init.test_ID = True
     classes.search(name)
     return 1
