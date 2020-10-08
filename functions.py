@@ -9,9 +9,9 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import anime_multithread
+import anime
 import anime_standalone
-import init
+import my_variables
 
 def selected_anime(URL):
     ep_list = list()
@@ -27,21 +27,21 @@ def selected_anime(URL):
         time.sleep(0.5)
     mutex = True
     if ('OVA' in anime_type.text or "Special" in info[0]):
-        init.season_num = 0
+        my_variables.season_num = 0
     elif "Movie" in info[0]:
-        init.season_num = -1
+        my_variables.season_num = -1
     else:
-        init.season +=1
-        init.season_num = init.season
+        my_variables.season +=1
+        my_variables.season_num = my_variables.season
     anime_ep = parsed_html.find_all('div', attrs={'class':'btn-group episodes-button episodi-link-button'})
-    init.list_link.clear()
+    my_variables.list_link.clear()
     for dim in anime_ep:
         episode = dim.find('a')['href']
-        episode = episode +"§%d"%init.season_num
+        episode = episode +"§%d"%my_variables.season_num
         ep_list.append(episode)
     mutex = False
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
-        if(init.debug):
+        if(my_variables.debug):
             print(os.getpid())
             for t in pool._threads:
                 print(t)
@@ -57,8 +57,8 @@ def one_link(ep):
     is_link = anime_page.find('a')['href']
     if 'watch' in is_link:
         episode = is_link+'&s=alt'
-    init.all_ep[episode] = x[1]
-    init.list_link.append(episode)
+    my_variables.all_ep[episode] = x[1]
+    my_variables.list_link.append(episode)
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
@@ -71,13 +71,13 @@ def get_correlati(URL):
     pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
     correlati = parsed_html.find_all('div', attrs={'class':'owl-item anime-card-newanime main-anime-card'})
-    init.correlati_list.append(URL)
+    my_variables.correlati_list.append(URL)
     for dim in correlati:
         anime = dim.find('a')['href']
-        if(init.config["DEFAULT"].getboolean('only_ITA') and is_lang):
+        if(my_variables.config["DEFAULT"].getboolean('only_ITA') and is_lang):
             if("-ITA" in anime):
-                init.correlati_list.append(anime)
-        else: init.correlati_list.append(anime)
+                my_variables.correlati_list.append(anime)
+        else: my_variables.correlati_list.append(anime)
     reorder_correlati()
 
 
@@ -92,32 +92,32 @@ def kill_child_processes(parent_pid, sig=signal.SIGTERM):
 
 
 def import_config():
-    if (init.config["DEFAULT"].get("crawl_path") is (None or "")):
-        init.config["DEFAULT"]['crawl_path'] = init.dir_path + "crawl_path/"
-    if (init.config["DEFAULT"].get("download_path") is (None or "")):
-        init.config["DEFAULT"]['download_path'] = init.dir_path + "download_path/"
-    if (init.config["DEFAULT"].get("movie_folder") is (None or "")):
-        init.config["DEFAULT"]['movie_folder'] = init.dir_path + "movie_folder/"
+    if (my_variables.config["DEFAULT"].get("crawl_path") is (None or "")):
+        my_variables.config["DEFAULT"]['crawl_path'] = my_variables.dir_path + "crawl_path/"
+    if (my_variables.config["DEFAULT"].get("download_path") is (None or "")):
+        my_variables.config["DEFAULT"]['download_path'] = my_variables.dir_path + "download_path/"
+    if (my_variables.config["DEFAULT"].get("movie_folder") is (None or "")):
+        my_variables.config["DEFAULT"]['movie_folder'] = my_variables.dir_path + "movie_folder/"
 
 def reorder_correlati():
     #global titolo
-    for URL in init.correlati_list:
+    for URL in my_variables.correlati_list:
         new_r = requests.get(url = URL, params = {})
         pastebin_url = new_r.text
         parsed_html = BeautifulSoup(pastebin_url,"html.parser")
         anno = parsed_html.find('div', attrs={'class':'container shadow rounded bg-dark-as-box mb-3 p-3 w-100 text-white'})
         release = re.findall("(?<=<b>Data di uscita:</b> )(.*)(?=<br/>)",str(anno))
-        init.anime[release[0]] = URL
+        my_variables.anime[release[0]] = URL
     locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
-    ordered_data = sorted(init.anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
-    init.titolo = re.findall("(?<=anime/)(.*)", ordered_data[0][1])[0]
+    ordered_data = sorted(my_variables.anime.items(), key = lambda x:datetime.strptime(x[0], "%d %B %Y"), reverse=False)
+    my_variables.titolo = re.findall("(?<=anime/)(.*)", ordered_data[0][1])[0]
     for x in ordered_data:
-        init.only_link.append(x[1])
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(init.only_link)) as pool:
-        if(init.debug):
+        my_variables.only_link.append(x[1])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(my_variables.only_link)) as pool:
+        if(my_variables.debug):
             for t in pool._threads:
                 print(t)
-        pool.map(selected_anime, init.only_link)
+        pool.map(selected_anime, my_variables.only_link)
 
 def check_Path(crawl_path):
     if(not os.path.isdir(crawl_path)):
@@ -146,7 +146,7 @@ def search(name):
         anime_list.append(dim.find('a')['href'])
         print("--------")
         x+=1
-    if(init.test_ID):
+    if(my_variables.test_ID):
         selected = 1
     else:
         while True: #richiedere id se + sbagliato
@@ -163,14 +163,14 @@ def search(name):
     #selected = 2
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
-    if(init.config["DEFAULT"].getboolean('all')):
+    if(my_variables.config["DEFAULT"].getboolean('all')):
         get_correlati(URL)
     else:
-        init.season = 1
+        my_variables.season = 1
         selected_anime(URL)
-    if  (init.file_type == 0):
-        anime_multithread.create_crawl()
-    elif  (init.file_type == 1):
+    if  (my_variables.file_type == 0):
+        anime.create_crawl()
+    elif  (my_variables.file_type == 1):
         anime_standalone.downloader()
     else:
         sys.exit(0)

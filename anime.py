@@ -5,8 +5,8 @@ import signal
 import re
 import time
 import getopt
-import classes
-import init
+import functions
+import my_variables
 #config
 #
 
@@ -35,14 +35,14 @@ def cli():
         if opt in ['-k', '--keyword']:
             keyword = arg
         if opt in ['--jdownloadpath']:
-            init.config["DEFAULT"]['download_path'] = arg
+            my_variables.config["DEFAULT"]['download_path'] = arg
         if opt in ['--crawlpath']:
-            init.config["DEFAULT"]['crawl_path'] = arg
+            my_variables.config["DEFAULT"]['crawl_path'] = arg
         if opt in ['-a', '--all']:
             if ('False' in str(arg)):
-                init.config["DEFAULT"]['all'] = False
+                my_variables.config["DEFAULT"]['all'] = False
             if ('True' in str(arg)):
-                init.config["DEFAULT"]['all'] = True
+                my_variables.config["DEFAULT"]['all'] = True
         if opt in ['-h', '--help']:
             usage()
             sys.exit(0)
@@ -52,23 +52,23 @@ def cli():
 def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
-    if(not init.test_ID):
-        classes.check_Path(init.config["DEFAULT"]['crawl_path']) #verifico che path esista
-        with open("%s%s.crawljob"%(init.config["DEFAULT"]['crawl_path'],init.titolo), 'w') as f:
+    if(not my_variables.test_ID):
+        functions.check_Path(my_variables.config["DEFAULT"]['crawl_path']) #verifico che path esista
+        with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'w') as f:
             f.write(crwd)
             f.close()
-        print("Creo crawljob per %d episodi"%len(init.list_link))
-        for link in init.list_link:
+        print("Creo crawljob per %d episodi"%len(my_variables.list_link))
+        for link in my_variables.list_link:
             sourcehtml = requests.get(link).text
             source = re.findall("file: \"(.*)\",",sourcehtml)
             try:
                 mp4_link = source[0]
             except IndexError:
                 mp4_link = ""
-            if init.all_ep[link]=="-1":
-                download = "%s%s/"%(init.config["DEFAULT"]['movie_folder'],init.titolo)
+            if my_variables.all_ep[link]=="-1":
+                download = "%s%s/"%(my_variables.config["DEFAULT"]['movie_folder'],my_variables.titolo)
             else:
-                download = "%s%s/Season_%s"%(init.config["DEFAULT"]['download_path'],init.titolo,init.all_ep[link])
+                download = "%s%s/Season_%s"%(my_variables.config["DEFAULT"]['download_path'],my_variables.titolo,my_variables.all_ep[link])
             crwd = crwd + '''
             {
             text= %s
@@ -78,18 +78,18 @@ def create_crawl():
             autoConfirm= true
             }
             '''%(mp4_link,download)
-        with open("%s%s.crawljob"%(init.config["DEFAULT"]['crawl_path'],init.titolo), 'a') as f:
-            print(init.config["DEFAULT"]['crawl_path'])
+        with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'a') as f:
+            print(my_variables.config["DEFAULT"]['crawl_path'])
             f.write(crwd)
             f.close()
-        init.list_link.clear()
+        my_variables.list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
 
 def main():
-    init.file_type = 0
-    signal.signal(signal.SIGTERM, classes.sig_handler)
-    signal.signal(signal.SIGINT, classes.sig_handler)
-    classes.import_config()
+    my_variables.file_type = 0
+    signal.signal(signal.SIGTERM, functions.sig_handler)
+    signal.signal(signal.SIGINT, functions.sig_handler)
+    functions.import_config()
     #key = cli()
     # rivedere funzione cli()
     key = None
@@ -97,15 +97,15 @@ def main():
         name = input("nome:")
     else:
         name = key
-    if (init.debug):
-        print(init.config)
-    classes.search(name)
+    if (my_variables.debug):
+        print(my_variables.config)
+    functions.search(name)
     return 1
 
 def test(name):
-    init.file_type = 0
-    init.test_ID = True
-    classes.search(name)
+    my_variables.file_type = 0
+    my_variables.test_ID = True
+    functions.search(name)
     return 1
 
 if __name__ == "__main__":
