@@ -13,6 +13,8 @@
 
 *.spec
 
+/venv
+
 /.venv
 
 /.vscode

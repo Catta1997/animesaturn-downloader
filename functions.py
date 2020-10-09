@@ -9,9 +9,9 @@ from datetime import datetime
 import locale
 import time
 import concurrent.futures
-import anime
-import anime_standalone
 import my_variables
+from anime import create_crawl
+from anime_standalone import downloader
 
 def selected_anime(URL):
     ep_list = list()
