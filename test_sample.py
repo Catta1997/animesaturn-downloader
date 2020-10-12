@@ -1,3 +1,3 @@
-import anime
+from anime_crawljob import test
 def test_answer():
-    anime.test("love is war")
+    test("love is war")
