@@ -298,6 +298,8 @@ def main():
 
 
 def test(name):
+    global file_type
+    global test_ID
     file_type = 0
     test_ID = True
     search(name)
