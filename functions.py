@@ -119,11 +119,6 @@ def reorder_correlati():
                 print(t)
         pool.map(selected_anime, my_variables.only_link)
 
-def check_Path(crawl_path):
-    if(not os.path.isdir(crawl_path)):
-        os.makedirs(crawl_path)
-
-
 def search(name):
     anime_list  = list()
     URL = "https://www.animesaturn.it/animelist"

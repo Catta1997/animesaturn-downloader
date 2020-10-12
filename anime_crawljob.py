@@ -7,6 +7,7 @@ import time
 import getopt
 import functions
 import my_variables
+import os
 #config
 #
 
@@ -49,11 +50,15 @@ def cli():
     return keyword
 ##############################################
 
+def check_Path(crawl_path):
+    if(not os.path.isdir(crawl_path)):
+        os.makedirs(crawl_path)
+
 def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
     if(not my_variables.test_ID):
-        functions.check_Path(my_variables.config["DEFAULT"]['crawl_path']) #verifico che path esista
+        check_Path(my_variables.config["DEFAULT"]['crawl_path']) #verifico che path esista
         with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'w') as f:
             f.write(crwd)
             f.close()
@@ -79,7 +84,6 @@ def create_crawl():
             }
             '''%(mp4_link,download)
         with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'a') as f:
-            print(my_variables.config["DEFAULT"]['crawl_path'])
             f.write(crwd)
             f.close()
         my_variables.list_link.clear()
