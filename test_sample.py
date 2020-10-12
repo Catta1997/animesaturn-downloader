@@ -1,3 +1,3 @@
-from start import test
+import start
 def test_answer():
-    test("love is war")
+    start.test("love is war")
