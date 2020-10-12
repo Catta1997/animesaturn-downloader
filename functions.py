@@ -10,7 +10,7 @@ import locale
 import time
 import concurrent.futures
 import my_variables
-from anime import create_crawl
+from anime_crawljob import create_crawl
 from anime_standalone import downloader
 
 def selected_anime(URL):
@@ -169,8 +169,8 @@ def search(name):
         my_variables.season = 1
         selected_anime(URL)
     if  (my_variables.file_type == 0):
-        anime.create_crawl()
+        create_crawl()
     elif  (my_variables.file_type == 1):
-        anime_standalone.downloader()
+        downloader()
     else:
         sys.exit(0)
