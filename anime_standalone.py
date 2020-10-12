@@ -7,11 +7,15 @@ import time
 import concurrent.futures
 from tqdm import tqdm
 import my_variables
-import functions
+
+def check_Path(crawl_path):
+    print(crawl_path)
+    if(not os.path.isdir(crawl_path)):
+        os.makedirs(crawl_path)
 
 def download(url):
     file_name = url.split("/")[-1]
-    functions.check_Path(os.path.join(my_variables.config["DEFAULT"]['download_path'],file_name.split("_")[0]))
+    check_Path(os.path.join(my_variables.config["DEFAULT"]['download_path'],file_name.split("_")[0]))
     with open(os.path.join(my_variables.config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
         with tqdm.wrapattr(open(os.path.join(my_variables.config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb"), "write", mmy_variablesers=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
@@ -21,7 +25,7 @@ def download(url):
 
 def downloader():
     #creo un file vuoto, se presente sovrascrivo
-    functions.check_Path(str(my_variables.config["DEFAULT"]['download_path'])) #verifico che path esista
+    check_Path(str(my_variables.config["DEFAULT"]['download_path'])) #verifico che path esista
     print("Rilevati %d episodi"%len(my_variables.list_link))
     episodes = []
     while True:
