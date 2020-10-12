@@ -7,7 +7,6 @@ import time
 import getopt
 import functions
 import my_variables
-import os
 #config
 #
 
@@ -50,15 +49,11 @@ def cli():
     return keyword
 ##############################################
 
-def check_Path(crawl_path):
-    if(not os.path.isdir(crawl_path)):
-        os.makedirs(crawl_path)
-
 def create_crawl():
     crwd = ""
     #creo un file vuoto, se presente sovrascrivo
     if(not my_variables.test_ID):
-        check_Path(my_variables.config["DEFAULT"]['crawl_path']) #verifico che path esista
+        functions.check_Path(my_variables.config["DEFAULT"]['crawl_path']) #verifico che path esista
         with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'w') as f:
             f.write(crwd)
             f.close()
@@ -84,33 +79,8 @@ def create_crawl():
             }
             '''%(mp4_link,download)
         with open("%s%s.crawljob"%(my_variables.config["DEFAULT"]['crawl_path'],my_variables.titolo), 'a') as f:
+            print(my_variables.config["DEFAULT"]['crawl_path'])
             f.write(crwd)
             f.close()
         my_variables.list_link.clear()
 #riordino correlati e  selezionato in base alla data di uscita
-
-def main():
-    my_variables.file_type = 0
-    signal.signal(signal.SIGTERM, functions.sig_handler)
-    signal.signal(signal.SIGINT, functions.sig_handler)
-    functions.import_config()
-    #key = cli()
-    # rivedere funzione cli()
-    key = None
-    if (key is None):
-        name = input("nome:")
-    else:
-        name = key
-    if (my_variables.debug):
-        print(my_variables.config)
-    functions.search(name)
-    return 1
-
-def test(name):
-    my_variables.file_type = 0
-    my_variables.test_ID = True
-    functions.search(name)
-    return 1
-
-if __name__ == "__main__":
-    main()
