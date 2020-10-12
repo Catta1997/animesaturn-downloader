@@ -71,13 +71,15 @@ def create_crawl():
 
 def download(url):
     file_name = url.split("/")[-1]
+    #print(os.path.join(download_path,file_name.split("_")[0]))
     check_Path(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0]))
     with open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
-        with tqdm.wrapattr(open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb"), "write", mmy_variablesers=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
+        with tqdm.wrapattr(open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb"), "write", miniters=1, desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
             for chunk in response.iter_content(chunk_size=4096):
                 fout.write(chunk)
         file.write(response.content)
+
 
 def downloader():
     check_Path(str(config["DEFAULT"]['download_path'])) #verifico che path esista
@@ -106,8 +108,6 @@ def downloader():
             except IndexError:
                 mp4_link = ""
             episodes.append(mp4_link)
-            #download(mp4_link,mp4_link.split("/")[-1])
-    #print(episodes)
     print("\n")
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
         pool.map(download, episodes)
