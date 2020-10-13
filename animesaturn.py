@@ -14,12 +14,11 @@ import os
 import configparser
 from operator import itemgetter
 
-class AnimeSaturn: 
+class AnimeSaturn:
     #config stuff
     dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
 
     debug = True
-    test_ID = False
     titolo = ""
 
     only_link = list()
@@ -29,12 +28,53 @@ class AnimeSaturn:
     all_ep = {}
     season = 0
     season_num = 0
-    file_type = -1 # 0 = normal, 1 = standalone
 
-    def __init__(self):
+    def __init__(self, debug = False):
+        if(debug == True):
+            self.test_ID = True
+            self.file_type = 0
+        else:
+            self.test_ID = False
+
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
         self.import_config()
+        try:
+            if(not self.test_ID):
+                if(self.file_type == 1):
+                    print("\x1b[4mUtilizzo tipologia standalone\x1b[0m")
+                    print()
+                elif(self.file_type == 0):
+                    print("\x1b[4mUtilizzo tipologia crawljob\x1b[0m")
+                    print()
+                elif(self.file_type == -1):
+                    file_type = self.seleziona()
+                elif(self.file_type > 1 or self.file_type < -1):
+                    print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
+                    print("Inserire manualmente la tipologia di programma: ")
+                    self.file_type = self.seleziona()
+        except ValueError:
+            print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
+            print("Inserire manualmente la tipologia di programma: ")
+            self.file_type = self.seleziona()
+        print(self.test_ID)
+        if(self.test_ID):
+            self.search("love is war")
+        else:
+            name = input("nome:")
+            self.search(name)
+
+    def seleziona(self):
+        while True: #richiedere id se + sbagliato
+                try:
+                    self.file_type = int(input("0: Crawljob 1:Standalone: "))
+                    if (self.file_type <  0 or self.file_type > 1):
+                        print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
+                        continue
+                    break
+                except ValueError:
+                    print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
+        return self.file_type
 
     def import_config(self):
         if (self.config["DEFAULT"].get("crawl_path") is (None or "")):
@@ -46,15 +86,21 @@ class AnimeSaturn:
             self.download_path = self.dir_path + "download_path/"
         else:
             self.download_path = self.config["DEFAULT"]['download_path']
-            
+
         if (self.config["DEFAULT"].get("movie_folder") is (None or "")):
             self.movie_path = self.dir_path + "movie_folder/"
         else:
             self.movie_path = self.config["DEFAULT"].get("movie_folder")
-        print("CONFIG DEBUG")
-        print(self.download_path)
-
-
+        try:
+            self.file_type
+        except AttributeError:
+            if (self.config["DEFAULT"].getint("type") is (None or "")):
+                self.file_type = -1
+            else:
+                try:
+                    self.file_type = int(self.config["DEFAULT"].getint("type"))
+                except ValueError:
+                    self.file_type = -1
 
     def selected_anime(self, url):
         ep_list = list()
@@ -124,7 +170,7 @@ class AnimeSaturn:
             if(self.config["DEFAULT"].getboolean('only_ITA') and is_lang):
                 if("-ITA" in anime):
                     self.correlati_list.append(anime)
-            else: 
+            else:
                 self.correlati_list.append(anime)
         self.reorder_correlati()
 
@@ -267,7 +313,7 @@ class AnimeSaturn:
         for episodedata in self.list_link:
             if(start <= episodedata[1] <= finish):
                 sourcehtml = requests.get(episodedata[0]).text
-                
+
                 try:
                     mp4_link =  re.findall("file: \"(.*)\",",sourcehtml)
                 except IndexError:
@@ -284,12 +330,9 @@ class AnimeSaturn:
         print(url)
         file_name = url.split("/")[-1]
         self.check_Path(os.path.join(self.download_path,file_name.split("_")[0]))
-        
+
         with open(os.path.join(self.download_path,file_name.split("_")[0],file_name), "wb") as file:
             response = requests.get(url, stream=True)
             with tqdm.wrapattr(open(os.path.join(self.download_path,file_name.split("_")[0],file_name), "wb"), "write", desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
                 for chunk in response.iter_content(chunk_size=4096):
                     fout.write(chunk)
-
-    
-
