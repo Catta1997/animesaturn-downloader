@@ -56,19 +56,46 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
 
 def check_ini_integrity():
     global config
+    ini_fix = ""
     if (not config.has_option("DEFAULT", "crawl_path")):
-        config["DEFAULT"]['crawl_path'] = ""
+        ini_fix += '''
+# watchdir .crawljob
+crawl_path =
+'''
+        #config["DEFAULT"]['crawl_path'] = ""
     if (not config.has_option("DEFAULT", "download_path")):
-        config["DEFAULT"]['download_path'] = ""
+        ini_fix += '''
+# path di salvataggio standalone e dei file scaricati con JDownloader
+download_path =
+'''
+        #config["DEFAULT"]['download_path'] = ""
     if (not config.has_option("DEFAULT", "movie_folder")):
+        ini_fix += '''
+# path in cui vengono salvati i film (solo se scaricato con JDownloader)
+movie_folder =
+'''
         config["DEFAULT"]['movie_folder'] = ""
-    if (not config.has_option("DEFAULT", "type")):
-        config["DEFAULT"]['type'] = -1
     if (not config.has_option("DEFAULT", "all")):
-        config["DEFAULT"]['all'] = str(False)
+        ini_fix += '''
+# scarica tutte le stagioni di un anime
+all = True
+'''
+        #config["DEFAULT"]['all'] = str(False)
     if (not config.has_option("DEFAULT", "only_ITA")):
-        config["DEFAULT"]['only_ITA'] = str(False)
-
+        ini_fix += '''
+# negli anime doppiati (es SAO) scarica solo gli episodi in italiano
+only_ITA = False
+'''
+        #config["DEFAULT"]['only_ITA'] = str(False)
+    if (not config.has_option("DEFAULT", "type")):
+        ini_fix += '''
+# 0 = crawljob, 1 = standalone, -1  = chiedi
+type = 0
+'''
+        #config["DEFAULT"]['type'] = -1
+    with open("config.ini", 'a') as f:
+        f.write(ini_fix)
+        f.close()
 def import_config():
     global config
     check_ini_integrity()
