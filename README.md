@@ -19,10 +19,11 @@
 ### Installazione
   - Installate i requisiti contenuti in "requirment.txt"
 ### Installazione con virtualenv
-- Creare virtualenv `python3 -m virtualenv venv`
-- Entrate in virtualenv con `source venv/bin/activate`
-- Aggiornate pip `pip install -U pip`
-- Installate le. dipendenze `pip install -r requirements.txt`
+- Creare virtualenv con `python3 -m virtualenv venv`
+- Entrare in virtualenv con `source venv/bin/activate`
+- Aggiornare pip con `pip install -U pip`
+- Installare le dipendenze con `pip install -r requirements.txt`
+- Avviare  il programma con `python start.py`
 ### Config
   - editare il file config.ini
   ```

@@ -3,21 +3,24 @@ from animesaturn import AnimeSaturn
 def main():
     animesaturn = AnimeSaturn()
     while True: #richiedere id se + sbagliato
-        try:
-            type_p = int(input("0: Crawljob 1:Standalone: "))
-            if (type_p <  0 or type_p > 1):
+            try:
+                file_type = int(input("0: Crawljob 1:Standalone: "))
+                if (file_type <  0 or file_type > 1):
+                    print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
+                    continue
+                break
+            except ValueError:
                 print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
                 continue
             break
         except ValueError:
             print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
-        
+
     animesaturn.file_type = type_p
     signal.signal(signal.SIGTERM, animesaturn.sig_handler)
     signal.signal(signal.SIGINT, animesaturn.sig_handler)
     name = input("nome:")
     animesaturn.search(name)
-
 
 def test(name):
     animesaturn.file_type = 0
