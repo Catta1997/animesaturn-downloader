@@ -1,38 +1,90 @@
-import signal
-import os
-import requests
-from tqdm import tqdm
-import concurrent.futures
 from bs4 import BeautifulSoup
-import time
-import re
+import concurrent.futures
 import configparser
 from datetime import datetime
 import locale
-import signal
+import os
 import psutil
+import re
+import requests
+import signal
 import sys
+import time
+from tqdm import tqdm
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
-config = configparser.ConfigParser()
-config.read('config.ini')
-debug = False
-test_ID = False
-only_link = list()
-list_link = list()
 correlati_list = list()
-anime = {}
-all_ep = {}
-titolo = ""
+list_link = list()
+only_link = list()
+file_type = -1
 season = 0
 season_num = 0
-file_type = -1
+all_ep = {}
+anime = {}
+titolo = ""
+debug = False
+test_ID = False
+
+# config.ini
+config = configparser.ConfigParser()
+if ( not os.path.isfile('config.ini')):
+    default_ini= '''
+[DEFAULT]
+# watchdir .crawljob
+crawl_path =
+
+# path di salvataggio standalone e dei file scaricati con JDownloader
+download_path =
+
+# path in cui vengono salvati i film (solo se scaricato con JDownloader)
+movie_folder =
+
+# scarica tutte le stagioni di un anime
+all = True
+
+# negli anime doppiati (es SAO) scarica solo gli episodi in italiano
+only_ITA = False
+
+# 0 = crawljob, 1 = standalone, -1  = chiedi
+type = 0
+'''
+    with open("config.ini", 'w') as f:
+        f.write(default_ini)
+        f.close()
+    print("non c'è ")
+config.read('config.ini')
+dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+
+def check_ini_integrity():
+    global config
+    if (not config.has_option("DEFAULT", "crawl_path")):
+        config["DEFAULT"]['crawl_path'] = ""
+    if (not config.has_option("DEFAULT", "download_path")):
+        config["DEFAULT"]['download_path'] = ""
+    if (not config.has_option("DEFAULT", "movie_folder")):
+        config["DEFAULT"]['movie_folder'] = ""
+    if (not config.has_option("DEFAULT", "type")):
+        config["DEFAULT"]['type'] = -1
+    if (not config.has_option("DEFAULT", "all")):
+        config["DEFAULT"]['all'] = str(False)
+    if (not config.has_option("DEFAULT", "only_ITA")):
+        config["DEFAULT"]['only_ITA'] = str(False)
+
+def import_config():
+    global config
+    check_ini_integrity()
+    if (config["DEFAULT"].get("crawl_path") is (None or "")):
+        config["DEFAULT"]['crawl_path'] = dir_path + "crawl_path/"
+    if (config["DEFAULT"].get("download_path") is (None or "")):
+        config["DEFAULT"]['download_path'] = dir_path + "download_path/"
+    if (config["DEFAULT"].get("movie_folder") is (None or "")):
+        config["DEFAULT"]['movie_folder'] = dir_path + "movie_folder/"
+    if (config["DEFAULT"].get("type") is None):
+        config["DEFAULT"]['type'] = -1
 
 def check_Path(crawl_path):
     #print(crawl_path)
     if(not os.path.isdir(crawl_path)):
         os.makedirs(crawl_path)
-
 
 def create_crawl():
     crwd = ""
@@ -64,14 +116,12 @@ def create_crawl():
             }
             '''%(mp4_link,download)
         with open("%s%s.crawljob"%(config["DEFAULT"]['crawl_path'],titolo), 'a') as f:
-            #print(config["DEFAULT"]['crawl_path'])
             f.write(crwd)
             f.close()
         list_link.clear()
 
 def download(url):
     file_name = url.split("/")[-1]
-    #print(os.path.join(download_path,file_name.split("_")[0]))
     check_Path(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0]))
     with open(os.path.join(config["DEFAULT"]['download_path'],file_name.split("_")[0],file_name), "wb") as file:
         response = requests.get(url, stream=True)
@@ -79,7 +129,6 @@ def download(url):
             for chunk in response.iter_content(chunk_size=4096):
                 fout.write(chunk)
         file.write(response.content)
-
 
 def downloader():
     check_Path(str(config["DEFAULT"]['download_path'])) #verifico che path esista
@@ -152,27 +201,37 @@ def selected_anime(URL):
     ep_list.clear()
 
 def one_link(ep):
-    epnumber = ep.replace("§1","").split("-")[-1]
-    x = ep.replace("§1","")
-    new_r = requests.get(url = x, params = {})
-    pastebin_url = new_r.text
-    parsed_html = BeautifulSoup(pastebin_url,"html.parser")
-    anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
-    is_link = anime_page.find('a')['href']
-    if 'watch' in is_link:
-        episode = is_link+'&s=alt'
-    if  (file_type == 0):
+    if  (file_type == 0): #crawljob
+        x = ep.split("§")
+        new_r = requests.get(url = x[0], params = {})
+        pastebin_url = new_r.text
+        parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+        anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
+        is_link = anime_page.find('a')['href']
+        if 'watch' in is_link: 
+            episode = is_link+'&s=alt'
+        all_ep[episode] = x[1]
         list_link.append(episode)
-    elif  (file_type == 1):
+    elif  (file_type == 1): # standalone
+        epnumber = ep.replace("§1","").split("-")[-1]
+        x = ep.replace("§1","")
+        new_r = requests.get(url = x, params = {})
+        pastebin_url = new_r.text
+        parsed_html = BeautifulSoup(pastebin_url,"html.parser")
+        anime_page = parsed_html.find('div', attrs={'class':'card bg-dark-as-box-shadow text-white'})
+        is_link = anime_page.find('a')['href']
+        if 'watch' in is_link:
+            episode = is_link+'&s=alt'
         list_link.append([episode,epnumber])
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
     kill_child_processes(os.getpid())
     sys.exit(0)
+
 def get_correlati(URL):
     is_lang = "-ITA" in URL #controlla se il link supporta la lingua ita
-    #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
+    #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per ognuno di essi
     new_r = requests.get(url = URL, params = {})
     pastebin_url = new_r.text
     parsed_html = BeautifulSoup(pastebin_url,"html.parser")
@@ -186,7 +245,6 @@ def get_correlati(URL):
         else: correlati_list.append(anime)
     reorder_correlati()
 
-
 def kill_child_processes(parent_pid, sig=signal.SIGTERM):
     try:
         parent = psutil.Process(parent_pid)
@@ -195,16 +253,6 @@ def kill_child_processes(parent_pid, sig=signal.SIGTERM):
     children = parent.children(recursive=True)
     for process in children:
         process.send_signal(sig)
-
-
-def import_config():
-    global config
-    if (config["DEFAULT"].get("crawl_path") is (None or "")):
-        config["DEFAULT"]['crawl_path'] = dir_path + "crawl_path/"
-    if (config["DEFAULT"].get("download_path") is (None or "")):
-        config["DEFAULT"]['download_path'] = dir_path + "download_path/"
-    if (config["DEFAULT"].get("movie_folder") is (None or "")):
-        config["DEFAULT"]['movie_folder'] = dir_path + "movie_folder/"
 
 def reorder_correlati():
     global titolo
@@ -239,9 +287,9 @@ def search(name):
     if (len(animes)) == 0:
         print("\x1b[31mNessun Anime trovato per %s\x1b[0m"%name)
         exit(0)
+    print("--------")
     for dim in animes:
-        print("--------")
-        print(x)
+        print("ID: \x1b[36m" + str(x) + "\x1b[0m")
         print("TITOLO:")
         print("\x1b[32m" + dim.find('a',attrs={'class':'badge badge-archivio badge-light'}).text + "\x1b[0m")
         print("TRAMA:")
@@ -263,7 +311,6 @@ def search(name):
                 break
             except ValueError:
                 print("\x1b[31mNon è un ID valido, riprovare...\x1b[0m")
-    #selected = 2
     selected -=1 #la lista parte da 0
     URL = anime_list[selected]
     if(config["DEFAULT"].getboolean('all')):
@@ -278,24 +325,43 @@ def search(name):
     else:
         sys.exit(0)
 
+def seleziona():
+    while True: #richiedere id se + sbagliato
+            try:
+                file_type = int(input("0: Crawljob 1:Standalone: "))
+                if (file_type <  0 or file_type > 1):
+                    print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
+                    continue
+                break
+            except ValueError:
+                print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
+    return file_type
+
 def main():
     global file_type
-    while True: #richiedere id se + sbagliato
-        try:
-            type_p = int(input("0: Crawljob 1:Standalone: "))
-            if (type_p <  0 or type_p > 1):
-                print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
-                continue
-            break
-        except ValueError:
-            print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
-    file_type = type_p
+    import_config()
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    import_config()
+    try:
+        file_type = int(config["DEFAULT"]['type'])
+        if(file_type == 1):
+            print("\x1b[4mUtilizzo tipologia standalone\x1b[0m")
+            print()
+        if(file_type == 0):
+            print("\x1b[4mUtilizzo tipologia crawljob\x1b[0m")
+            print()
+        if(file_type == -1):
+            file_type = seleziona()
+        elif(file_type > 1 or file_type < -1):
+            print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
+            print("Inserire manualmente la tipologia di programma: ")
+            file_type = seleziona()
+    except ValueError:
+        print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
+        print("Inserire manualmente la tipologia di programma: ")
+        file_type = seleziona()
     name = input("nome:")
     search(name)
-
 
 def test(name):
     global file_type
