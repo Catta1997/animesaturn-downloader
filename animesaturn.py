@@ -54,7 +54,7 @@ class AnimeSaturn:
         except ValueError:
             print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
             print("Inserire manualmente la tipologia di programma: ")
-            self.file_type = self.seleziona()
+            self.seleziona()
         print(self.test_ID)
         if(self.test_ID):
             self.search("love is war")
