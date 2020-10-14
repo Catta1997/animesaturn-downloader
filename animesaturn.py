@@ -243,7 +243,8 @@ class AnimeSaturn:
             self.downloader()
         else:
             sys.exit(0)
-    def check_Path(self,crawl_path):
+    @staticmethod
+    def check_Path(crawl_path):
         print(crawl_path)
         if(not os.path.isdir(crawl_path)):
             os.makedirs(crawl_path)
