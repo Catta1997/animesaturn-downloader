@@ -150,10 +150,6 @@ class AnimeSaturn:
         self.list_link.append([episode,int(x[0].split("-")[-1])])
 
 
-    def sig_handler(self, _signo, _stack_frame):
-        print("\n")
-        kill_child_processes(os.getpid())
-        sys.exit(0)
 
     def get_correlati(self, url):
         is_lang = "-ITA" in url #controlla se il link supporta la lingua ita
