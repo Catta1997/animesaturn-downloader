@@ -1,3 +1,3 @@
-import anime_multithread
+import start
 def test_answer():
-    anime_multithread.test("love is war")
+    start.test("love is war")

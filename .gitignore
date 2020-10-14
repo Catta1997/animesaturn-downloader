@@ -13,6 +13,8 @@
 
 *.spec
 
+/venv
+
 /.venv
 
 /venv
@@ -26,3 +28,4 @@
 /download_path
 
 /movie_folder
+*.mp4

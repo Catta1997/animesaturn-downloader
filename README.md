@@ -1,23 +1,28 @@
-# animesaturn-downloader
-![GitHub Pipenv locked Python version](https://img.shields.io/github/pipenv/locked/python-version/Catta1997/animesaturn-downloader)
-![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/requests?color=yellow) 
-![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/beautifulsoup4?color=yellow)
-![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/psutil?color=yellow)
-![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/tqdm?color=yellow)
-![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/wget?color=yellow)
+![Beta](https://img.shields.io/badge/WARNING-BETA%20BRANCH-red?style=for-the-badge&logo=adblock&logoColor=critical)
 
-[![CodeFactor](https://www.codefactor.io/repository/github/catta1997/animesaturn-downloader/badge/master)](https://www.codefactor.io/repository/github/catta1997/animesaturn-downloader/overview/master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/be1ac1ec55dc48678fbcaf15f8e69e3a)](https://app.codacy.com/gh/Catta1997/animesaturn-downloader?utm_source=github.com&utm_medium=referral&utm_content=Catta1997/animesaturn-downloader&utm_campaign=Badge_Grade)
-[![Build Status](https://travis-ci.org/Catta1997/animesaturn-downloader.svg?branch=master)](https://travis-ci.org/Catta1997/animesaturn-downloader)
+# animesaturn-downloader
+![GitHub Pipenv locked Python version (branch)](https://img.shields.io/github/pipenv/locked/python-version/Catta1997/animesaturn-downloader/beta?logo=python&logoColor=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/requests/beta?color=yellow) 
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/beautifulsoup4/beta?color=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/psutil/beta?color=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/tqdm/beta?color=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/wget/beta?color=yellow)
+![GitHub Pipenv locked dependency version](https://img.shields.io/github/pipenv/locked/dependency-version/Catta1997/animesaturn-downloader/configparser/beta?color=yellow)
+
+![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/Catta1997/animesaturn-downloader/beta?logo=codefactor) 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/be1ac1ec55dc48678fbcaf15f8e69e3a)](https://app.codacy.com/gh/Catta1997/animesaturn-downloader?utm_source=github.com&utm_medium=referral&utm_content=Catta1997/animesaturn-downloader&utm_campaign=Badge_Grade) 
+[![Travis](https://img.shields.io/travis/com/Catta1997/animesaturn-downloader/beta?logo=travis)](https://travis-ci.com/thebespokepixel/badges "Travis")  
 
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)   
+
 ### Installazione
   - Installate i requisiti contenuti in "requirment.txt"
 ### Installazione con virtualenv
-- Creare virtualenv `python3 -m virtualenv venv`
-- Entrate in virtualenv con `source venv/bin/activate`
-- Aggiornate pip `pip install -U pip`
-- Installate le. dipendenze `pip install -r requirements.txt`
+- Creare virtualenv con `python3 -m virtualenv venv`
+- Entrare in virtualenv con `source venv/bin/activate`
+- Aggiornare pip con `pip install -U pip`
+- Installare le dipendenze con `pip install -r requirements.txt`
+- Avviare  il programma con `python start.py`
 ### Config
   - editare il file config.ini
   ```
@@ -27,5 +32,6 @@
   movie_folder = 
   all = True
   only_ITA = False
+  type = -1
   ```
   lasciare il valore vuoto per la path di default oppure inserire una nuova path Es: "C:\Users\utente\anime\"
