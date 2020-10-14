@@ -1,4 +1,5 @@
 import signal
+import sys
 from animesaturn import AnimeSaturn
 def main():
     animesaturn = AnimeSaturn()
