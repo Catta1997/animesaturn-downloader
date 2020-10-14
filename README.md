@@ -1,6 +1,4 @@
-| :warning: WARNING          |
-|:---------------------------|
-| BETA BRENCH    |
+![Beta](https://img.shields.io/badge/WARNING-BETA%20BRANCH-red?style=for-the-badge&logo=adblock&logoColor=critical)
 
 # animesaturn-downloader
 ![GitHub Pipenv locked Python version (branch)](https://img.shields.io/github/pipenv/locked/python-version/Catta1997/animesaturn-downloader/beta?logo=python&logoColor=yellow)
