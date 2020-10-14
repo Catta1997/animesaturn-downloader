@@ -167,7 +167,8 @@ class AnimeSaturn:
                 self.correlati_list.append(anime)
         self.reorder_correlati()
 
-    def kill_child_processes(self,parent_pid, sig=signal.SIGTERM):
+    @staticmethod
+    def kill_child_processes(parent_pid, sig=signal.SIGTERM):
         try:
             parent = psutil.Process(parent_pid)
         except psutil.NoSuchProcess:
