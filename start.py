@@ -7,7 +7,7 @@ def sig_handler(_signo, _stack_frame):
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
-    animesaturn = AnimeSaturn()
+    AnimeSaturn()
 
 def test(fixthetester):
     AnimeSaturn(debug=True)
