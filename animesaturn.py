@@ -10,9 +10,7 @@ import locale
 import time
 from tqdm import tqdm
 import concurrent.futures
-import os
 import configparser
-from operator import itemgetter
 
 class AnimeSaturn:
     #config stuff
@@ -30,7 +28,7 @@ class AnimeSaturn:
     season_num = 0
 
     def __init__(self, debug = False):
-        if(debug == True):
+        if(debug):
             self.test_ID = True
             self.file_type = 0
         else:
