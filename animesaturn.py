@@ -46,11 +46,11 @@ class AnimeSaturn:
                     print("\x1b[4mUtilizzo tipologia crawljob\x1b[0m")
                     print()
                 elif(self.file_type == -1):
-                    file_type = self.seleziona()
+                    self.seleziona()
                 elif(self.file_type > 1 or self.file_type < -1):
                     print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
                     print("Inserire manualmente la tipologia di programma: ")
-                    self.file_type = self.seleziona()
+                    self.seleziona()
         except ValueError:
             print("\x1b[31mValore inserito nel config.ini non valido\x1b[0m")
             print("Inserire manualmente la tipologia di programma: ")
@@ -72,7 +72,6 @@ class AnimeSaturn:
                     break
                 except ValueError:
                     print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
-        return self.file_type
 
     def import_config(self):
         if (self.config["DEFAULT"].get("crawl_path") is (None or "")):
