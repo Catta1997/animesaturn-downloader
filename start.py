@@ -10,7 +10,7 @@ def main():
     animesaturn = AnimeSaturn()
 
 def test(fixthetester):
-    animesaturn = AnimeSaturn(debug=True)
+    AnimeSaturn(debug=True)
     return 0
 
 if __name__ == "__main__":
