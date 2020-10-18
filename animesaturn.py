@@ -215,7 +215,7 @@ class AnimeSaturn:
             print("--------")
         for dim in animes:
             print("\x1b[36mID:")
-            print(id_num + "\x1b[0m")
+            print(str(id_num) + "\x1b[0m")
             print("TITOLO:")
             print("\x1b[32m" + dim.find('a',attrs={'class':'badge badge-archivio badge-light'}).text + "\x1b[0m")
             print("TRAMA:")
