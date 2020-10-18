@@ -15,7 +15,6 @@ from datetime import datetime
 from tqdm import tqdm
 
 class AnimeSaturn:
-
     """Classe AnimeSaturn, raccoglie le varie funzioni necessarie al funzionamento."""
     #config stuff
     dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
@@ -66,7 +65,7 @@ class AnimeSaturn:
             self.search(name)
 
     def seleziona(self):
-        """seleziona crawljob o standalone."""
+        """Seleziona crawljob o standalone."""
         while True: #richiedere id se + sbagliato
                 try:
                     self.file_type = int(input("0: Crawljob 1:Standalone: "))
