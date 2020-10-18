@@ -6,8 +6,9 @@ from animesaturn import AnimeSaturn
 
 def sig_handler(_signo, _stack_frame):
     print("\n")
-    AnimeSaturn.kill_child_processes(os.getpgid())
+    AnimeSaturn.kill_child_processes(os.getpid())
     sys.exit(0)
+
 def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
