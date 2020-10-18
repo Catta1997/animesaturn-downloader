@@ -170,7 +170,8 @@ class AnimeSaturn:
                 self.correlati_list.append(anime)
         self.reorder_correlati()
 
-    def kill_child_processes(self, parent_pid):
+    @staticmethod
+    def kill_child_processes(parent_pid):
         try:
             parent = psutil.Process(parent_pid)
         except psutil.NoSuchProcess:
@@ -178,8 +179,7 @@ class AnimeSaturn:
         children = parent.children(recursive=True)
         for process in children:
             process.send_signal(signal.SIGTERM)
-        if(self.verbose):
-            print("Killed %d processes"%len(children))
+        print("Killed %d processes"%len(children))
 
     def reorder_correlati(self):
         for URL in self.correlati_list:
