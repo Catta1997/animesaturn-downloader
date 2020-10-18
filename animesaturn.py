@@ -1,4 +1,4 @@
-"""AnimeSaturn-downloader by Catta1997"""
+"""AnimeSaturn-downloader by Catta1997."""
 import concurrent.futures
 import configparser
 import locale
@@ -15,7 +15,8 @@ from datetime import datetime
 from tqdm import tqdm
 
 class AnimeSaturn:
-    """Classe AnimeSaturn, raccoglie le varie funzioni necessarie al funzionamento"""
+
+    """Classe AnimeSaturn, raccoglie le varie funzioni necessarie al funzionamento."""
     #config stuff
     dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
     verbose = False
@@ -29,7 +30,7 @@ class AnimeSaturn:
     season_num = 0
 
     def __init__(self, debug = False):
-        """Avvia la ricerca"""
+        """Avvia la ricerca."""
         if(debug):
             self.test_ID = True
             self.file_type = 0
@@ -65,7 +66,7 @@ class AnimeSaturn:
             self.search(name)
 
     def seleziona(self):
-        """seleziona crawljob o standalone"""
+        """seleziona crawljob o standalone."""
         while True: #richiedere id se + sbagliato
                 try:
                     self.file_type = int(input("0: Crawljob 1:Standalone: "))
@@ -77,7 +78,7 @@ class AnimeSaturn:
                     print("\x1b[31mScelta non valida, riprovare...\x1b[0m")
 
     def import_config(self):
-        """Importa config.ini"""
+        """Importa il config."""
         if (self.config["DEFAULT"].getint("limit") is (None or "")):
             self.limit = -1
         else:
@@ -109,7 +110,7 @@ class AnimeSaturn:
                     self.file_type = -1
 
     def selected_anime(self, url):
-        """Funzione di selezione dell'anime da scaricare"""
+        """Funzione di selezione dell'anime da scaricare."""
         ep_list = list()
         mutex = False
         if(self.verbose):
@@ -148,7 +149,7 @@ class AnimeSaturn:
         ep_list.clear()
 
     def one_link(self, ep):
-        """Ottiene un link di download"""
+        """Ottiene un link di download."""
         x = ep.split("§")
         new_r = requests.get(url = x[0], params = {})
         pastebin_url = new_r.text
@@ -161,7 +162,7 @@ class AnimeSaturn:
         self.list_link.append([episode,int(x[0].split("-")[-1])])
 
     def get_correlati(self, url):
-        """Ottiene la lista degli anime correlati"""
+        """Ottiene la lista degli anime correlati."""
         is_lang = "-ITA" in url #controlla se il link supporta la lingua ita
         #analizzo url e cerco la sezione "correlati" e richiamo la funzione per trovare gli episodi per gonuno di essi
         new_r = requests.get(url = url, params = {})
@@ -180,7 +181,7 @@ class AnimeSaturn:
 
     @staticmethod
     def kill_child_processes(parent_pid):
-        """Esce da tutti i processi figlio prima di terminare il programma"""
+        """Esce da tutti i processi figlio prima di terminare il programma."""
         try:
             parent = psutil.Process(parent_pid)
         except psutil.NoSuchProcess:
@@ -191,7 +192,7 @@ class AnimeSaturn:
         print("Killed %d processes"%len(children))
 
     def reorder_correlati(self):
-        """Riordina gli anime correlati in base alla data di uscita"""
+        """Riordina gli anime correlati in base alla data di uscita."""
         for URL in self.correlati_list:
             new_r = requests.get(url = URL, params = {})
             pastebin_url = new_r.text
@@ -211,7 +212,7 @@ class AnimeSaturn:
             pool.map(self.selected_anime, self.only_link)
 
     def search(self,name):
-        """Funzione di ricerca dell'anime inserito"""
+        """Funzione di ricerca dell'anime inserito."""
         anime_list  = list()
         URL = "https://www.animesaturn.it/animelist"
         r = requests.get(url = URL, params = {"search":name})
@@ -267,7 +268,7 @@ class AnimeSaturn:
             os.makedirs(crawl_path)
 
     def create_crawl(self):
-        """Crea, salva ed avvia un crawljob"""
+        """Crea, salva ed avvia un crawljob."""
         crwd = ""
         #creo un file vuoto, se presente sovrascrivo
         if(not self.test_ID):
@@ -304,7 +305,7 @@ class AnimeSaturn:
             self.list_link.clear()
 
     def downloader(self):
-        """Avvia i download con una barra di avanzamento"""
+        """Avvia i download con una barra di avanzamento."""
         download_link = list()
         #creo un file vuoto, se presente sovrascrivo
         self.check_Path(str(self.download_path)) #verifico che path esista
@@ -346,7 +347,7 @@ class AnimeSaturn:
 
 
     def download(self,url):
-        """Prepara i link di  download"""
+        """Prepara i link di  download."""
         if(self.verbose):
             print(url)
         file_name = url.split("/")[-1]
