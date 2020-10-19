@@ -1,3 +1,5 @@
+"""AnimeSaturn-downloader by Catta1997."""
 import start
 def test_answer():
-    start.test("love is war")
+    """Funzione utilizzata solo da travis."""
+    start.test()
