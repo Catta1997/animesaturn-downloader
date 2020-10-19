@@ -1,6 +1,7 @@
 """AnimeSaturn-downloader by Catta1997."""
 import concurrent.futures
 import configparser
+import getopt
 import locale
 import os
 import psutil
@@ -28,6 +29,43 @@ class AnimeSaturn:
     season = 0
     season_num = 0
 
+    @staticmethod
+    def usage():
+        """Print argv."""
+        usage = f"AnimeSaturn Downloader Usage:\n" \
+                f"\t-k, --keyword (str):\t\tAnime da cercare\n"\
+                f"\t-d, --standalone:\t\tTipologia Standalone\n"\
+                f"\t-c, --crawljob:\t\tTipologia Crawljob\n"
+        print(usage)
+
+    def cli_mode(self):
+        """Carico argv."""
+        crawl = False
+        stand = False
+        keyword = None
+        argv = sys.argv[1:]
+        try:
+            opts,arg = getopt.getopt(argv, 'k:sdvc', ['keyword=', 'standalone', 'crawljob'])
+        except getopt.GetoptError:
+            # stampa l'informazione di aiuto ed esce:
+            self.usage()
+            sys.exit(2)
+        for opt, arg in opts:
+            if opt == '-v':
+                self.verbose = True
+            if opt in ['-k', '--keyword']:
+                keyword = arg
+            if opt in ['-c', '--crawljob']:
+                crawl = True
+                self.file_type = 0
+            if opt in ['-d', '--standalone']:
+                stand = True
+                self.file_type = 1
+        if(stand and crawl):
+            print("\x1b[31mNon è spossibile specificare sia la tipologia crawljob che la tipologia standalone\x1b[0m")
+            sys.exit(0)
+        return keyword
+
     def __init__(self, debug = False):
         """Avvia la ricerca."""
         if(debug):
@@ -38,6 +76,7 @@ class AnimeSaturn:
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
         self.import_config()
+        key = self.cli_mode()
         try:
             if(not self.test_ID):
                 if(self.file_type == 1):
@@ -61,7 +100,10 @@ class AnimeSaturn:
         if(self.test_ID):
             self.search("love is war")
         else:
-            name = input("nome:")
+            if key is None:
+                name = input("nome:")
+            else:
+                name = key
             self.search(name)
 
     def seleziona(self):
@@ -78,13 +120,6 @@ class AnimeSaturn:
 
     def import_config(self):
         """Importa il config."""
-        if (self.config["DEFAULT"].getint("limit") is (None or "")):
-            self.limit = -1
-        else:
-            try:
-                self.limit = int(self.config["DEFAULT"].getint("limit"))
-            except ValueError:
-                self.limit = -1
         if (self.config["DEFAULT"].get("crawl_path") is (None or "")):
             self.crawl_path = self.dir_path + "crawl_path/"
         else:
@@ -107,6 +142,13 @@ class AnimeSaturn:
                     self.file_type = int(self.config["DEFAULT"].getint("type"))
                 except ValueError:
                     self.file_type = -1
+        if (self.config["DEFAULT"].getint("limit") is (None or "")):
+            self.limit = -1
+        else:
+            try:
+                self.limit = int(self.config["DEFAULT"].getint("limit"))
+            except ValueError:
+                self.limit = -1
 
     def selected_anime(self, url):
         """Funzione di selezione dell'anime da scaricare."""
@@ -140,10 +182,6 @@ class AnimeSaturn:
             ep_list.append(episode)
         mutex = False
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(ep_list)) as pool:
-            if(self.verbose):
-                print(os.getpid())
-                for t in pool._threads:
-                    print(t)
             pool.map(self.one_link, ep_list)
         ep_list.clear()
 
@@ -184,11 +222,11 @@ class AnimeSaturn:
         try:
             parent = psutil.Process(parent_pid)
         except psutil.NoSuchProcess:
-            return
+            sys.exit(0)
         children = parent.children(recursive=True)
         for process in children:
             process.send_signal(signal.SIGTERM)
-        print("Killed %d processes"%len(children))
+        parent.send_signal(signal.SIGKILL)
 
     def reorder_correlati(self):
         """Riordina gli anime correlati in base alla data di uscita."""
@@ -205,9 +243,6 @@ class AnimeSaturn:
         for x in ordered_data:
             self.only_link.append(x[1])
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.only_link)) as pool:
-            if(self.verbose):
-                for t in pool._threads:
-                    print(t)
             pool.map(self.selected_anime, self.only_link)
 
     def search(self,name):
@@ -225,8 +260,8 @@ class AnimeSaturn:
             sys.exit(0)
             print("--------")
         for dim in animes:
-            print("\x1b[36mID:")
-            print(str(id_num) + "\x1b[0m")
+            print("ID:")
+            print("\x1b[36m" + str(id_num) + "\x1b[0m")
             print("TITOLO:")
             print("\x1b[32m" + dim.find('a',attrs={'class':'badge badge-archivio badge-light'}).text + "\x1b[0m")
             print("TRAMA:")
@@ -343,7 +378,6 @@ class AnimeSaturn:
             pool.map(self.download, download_link)
         self.list_link.clear()
     #riordino correlati e  selezionato in base alla data di uscita
-
 
     def download(self,url):
         """Prepara i link di  download."""

@@ -29,3 +29,4 @@
 
 /movie_folder
 *.mp4
+.pylintrc

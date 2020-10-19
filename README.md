@@ -20,7 +20,16 @@
 - Entrare in virtualenv con `source venv/bin/activate`
 - Aggiornare pip con `pip install -U pip`
 - Installare le dipendenze con `pip install -r requirements.txt`
+### Avvio
 - Avviare  il programma con `python start.py`
+### argv
+- -k, --keyword: nome anime da ricercare (`python start.py -k 'love is war'` o `python start.py --keyword 'love is war'`)
+- -s: usa tipologia Standalone (`python start.py -s'`)
+- -c: usa tipologia crawljob (`python start.py -c'`)
+
+I vari argv possono essere usati insieme ad esempio `python start.py -k 'love is war' -s`
+#### Non è possibile specificare sia -c che -s
+
 ### Config
   - editare il file config.ini
   ```
