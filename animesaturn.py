@@ -368,8 +368,8 @@ class AnimeSaturn:
                     mp4_link = ""
                 episodes.append(mp4_link)
         print("\n")
-        for ep in sorted(episodes):
-            download_link.append(ep[0])
+        for i, ep in enumerate(sorted(episodes)):
+            download_link.append([ep[0], self.list_link[i]])
         if(self.limit == -1):
             limite = len(download_link)
         else:
@@ -381,12 +381,13 @@ class AnimeSaturn:
 
     def download(self,url):
         """Prepara i link di  download."""
+        url, ll = url
         if(self.verbose):
             print(url)
         file_name = url.split("/")[-1]
         self.check_Path(os.path.join(self.download_path,file_name.split("_")[0]))
         with open(os.path.join(self.download_path,file_name.split("_")[0],file_name), "wb"):
-            response = requests.get(url, stream=True)
+            response = requests.get(url, stream=True, headers={"Referer": ll[0]})
             with tqdm.wrapattr(open(os.path.join(self.download_path,file_name.split("_")[0],file_name), "wb"), "write", desc=url.split('/')[-1], total=int(response.headers.get('content-length', 0))) as fout:
                 for chunk in response.iter_content(chunk_size=4096):
                     fout.write(chunk)
