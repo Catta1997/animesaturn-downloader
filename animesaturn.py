@@ -328,6 +328,7 @@ class AnimeSaturn:
                 downloadFolder= %s
                 enabled= true
                 autoStart= true
+                deepAnalyseEnabled= true
                 autoConfirm= true
                 }
                 '''%(mp4_link,download)
